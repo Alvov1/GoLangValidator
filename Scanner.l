@@ -40,11 +40,11 @@ NIL             "nil"
 {BOOL_CONST}                    { printf("true"); return BOOL_CONST; } 
 {NIL}                           { printf("nil"); return NIL; }
 
-[a-zA-Z][a-zA-Z0-9_]*     { printf("IDENTIFIER");  return IDENTIFIER; }
-{DIGIT}		    { printf("%c", *yytext); return DIGIT; };
-[\t ]           { printf("%c", *yytext); }
-[\n]+           { printf("\n"); return '\n'; }
+[a-zA-Z][a-zA-Z0-9_]*           { printf("IDENTIFIER");  return IDENTIFIER; }
+{DIGIT}		                    { printf("%c", *yytext); return DIGIT; };
+[\t ]                           { printf("%c", *yytext); }
+[\n]                            { printf("\n"); return '\n'; }
 
-[^a-zA-Z0-9_]   { printf("Unexpected character '%c'", *yytext); return *yytext; };
+[^a-zA-Z0-9_]                   { printf("Unexpected character '%c'", *yytext); return *yytext; };
 
 %%
