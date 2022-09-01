@@ -14,89 +14,130 @@
 }
 
 %token IDENTIFIER DIGIT LETTER VAR_TYPE BOOL_CONST NIL PACKAGE INTERFACE MAP 
-%token GOTO FALLTHROUGH DEFER CHAN IMPORT FUNC BREAK CASE CONST 
+%token GOTO FALLTHROUGH DEFER CHAN IMPORT FUNC BREAK CASE CONST STRING ARROW_LEFT
 %token CONTINUE DEFAULT ELSE FOR GO IF RANGE RETURN STRUCT SWITCH TYPE VAR
+%token HEX_BYTE LITTLE_U BIG_U ESCAPED CHAR SELECT OCT HEX OCT_BYTE SIGNATURE
+
 
 %%
 
-VarDecl :
-	VAR VarSpec				{ printf("VarDecl - VAR VarSpec.\n"); exit(0); }
-	| VAR "(" '{' VarSpec ";" '}' ")"	{ printf("VarDecl - VAR ( VarSpec ; ).\n"); exit(0); }
+SourceFile :
+    PackageClause ImportDecls TopLevelDecls         { printf("SourceFile.\n"); }
+    ;
+    
+PackageClause : 
+    PACKAGE PackageName                             { printf("PackageClause.\n"); }
+    ;
+    
+PackageName :
+	IDENTIFIER			                            { printf("PackageName - identifier.\n"); }
 	;
 	
-VarSpec :
-	IdentifierList Type '[' "=" ExpressionList ']' 		{ pritf("VarSpec - IdentifierList ( Type [ = ExpressionList ] ).\n"); }
-	| IdentifierList "=" ExpressionList				{ pritf("VarSpec - IdentifierList ( = ExpressionList ).\n"); }
-	//IdentifierList 							{ printf("VarSpec - IdentifierList.\n"); }
+ImportDecls :
+    | ImportDecls ImportDecl                        { printf("ImportDecls.\n"); }
+    ;
+ImportDecl :
+    IMPORT ImportSpec                               { printf("ImportDecl - import ImportSpec.\n"); }
+    | IMPORT "(" ImportSpecs ")"         { printf("ImportDecl - import ( ImportSpec ).\n"); }
+    ;
+    
+ImportSpecs :
+    | ImportSpecs ImportSpec                        { printf("ImportSpecs.\n"); }
+    ;
+
+ImportSpec :
+    ImportPath                                      { printf("ImportSpec: ImportPath.\n"); }
+    | "." ImportPath                                { printf("ImportSpec: . ImportPath.\n"); }
+    | PackageName ImportPath                        { printf("ImportSpec: PackageName ImportPath.\n"); }
+    ;
+    
+ImportPath :
+    STRING                                          { printf("ImportPath.\n"); }
+    ;
+
+VarDecl :
+	VAR VarSpec				                        { printf("VarDecl - VAR VarSpec.\n"); exit(0); }
+	| VAR "(" VarSpecs ")"	                        { printf("VarDecl - VAR ( VarSpec ; ).\n"); exit(0); }
 	;
+	
+VarSpecs :
+    | VarSpecs VarSpec                              { printf("VarSpecs.\n"); }
+    ;
+    
+VarSpec :
+    IdentifierList Type                 { printf("VarSpec: IdentifierList Type.\n"); }
+    | IdentifierList Type "=" ExpressionList                    { printf("VarSpec: IdentifierList Type = ExpressionList.\n"); }
+    | IdentifierList "=" ExpressionList                 { printf("VarSpec: IdentifierList = ExpressionList.\n"); }
+    ;
 	
 ExpressionList :
-	Expression '{' "," Expression '}'			{ printf("ExpressionList.\n"); }
-	;
+    Expression                              { printf("ExpressionList - Expression.\n"); }
+    | ExpressionList "," Expression                             { printf("ExpressionList - ExpressionList , Expression.\n"); }
+    ;
 
 Expression :
-	UnaryExpr						{ printf("Expression - UnaryExpr.\n"); }
-	| Expression binary_op Expression			{ printf("Expression - Expression op Expression.\n"); }
+	UnaryExpr						                { printf("Expression - UnaryExpr.\n"); }
+	| Expression binary_op Expression			    { printf("Expression - Expression op Expression.\n"); }
 	;
 	
 UnaryExpr :
-	PrimaryExpr						{ printf("UnaryExpr - PrimaryExpr.\n"); }
-	| unary_op UnaryExpr					{ printf("UnaryExpr - op UnaryExpr.\n"); }
+	PrimaryExpr						                { printf("UnaryExpr - PrimaryExpr.\n"); }
+	| unary_op UnaryExpr					        { printf("UnaryExpr - op UnaryExpr.\n"); }
 	;
 	
 binary_op :
-	"||"							{ printf("Binary_operator: ||.\n"); }
-	| "&&"							{ printf("Binary_operator: &&.\n"); }
-	| rel_op							{ printf("Binary_operator: Rel_op.\n"); }
-	| add_op							{ printf("Binary_operator: Add_op.\n"); }
-	| mul_op							{ printf("Binary_operator: Mul_op.\n"); }
+	"||"							    { printf("Binary_operator: ||.\n"); }
+	| "&&"							    { printf("Binary_operator: &&.\n"); }
+	| rel_op					        { printf("Binary_operator: Rel_op.\n"); }
+	| add_op					        { printf("Binary_operator: Add_op.\n"); }
+	| mul_op						    { printf("Binary_operator: Mul_op.\n"); }
 	;
 	
 rel_op :
-	"=="							{ printf("Relativeness_operator: ==.\n"); }
-	| "!="							{ printf("Relativeness_operator: !=.\n"); }
-	| "<"							{ printf("Relativeness_operator: <.\n"); }
-	| "<="							{ printf("Relativeness_operator: <=.\n"); }
-	| ">"							{ printf("Relativeness_operator: >.\n"); }
-	| ">="							{ printf("Relativeness_operator: >=.\n"); }
+	"=="							    { printf("Relativeness_operator: ==.\n"); }
+	| "!="							    { printf("Relativeness_operator: !=.\n"); }
+	| "<"							    { printf("Relativeness_operator: <.\n"); }
+	| "<="							    { printf("Relativeness_operator: <=.\n"); }
+	| ">"							    { printf("Relativeness_operator: >.\n"); }
+	| ">="							    { printf("Relativeness_operator: >=.\n"); }
 	;
 	
 add_op :
-	"+"							{ printf("Addition_operator: +.\n"); }
-	| "-"							{ printf("Addition_operator: -.\n"); }
-	| "|"							{ printf("Addition_operator: |.\n"); }
-	| "^"							{ printf("Addition_operator: ^.\n"); }
+	"+"							        { printf("Addition_operator: +.\n"); }
+	| "-"							    { printf("Addition_operator: -.\n"); }
+	| "|"							    { printf("Addition_operator: |.\n"); }
+	| "^"							    { printf("Addition_operator: ^.\n"); }
 	;
 	
 mul_op :
-	"*"							{ printf("Multiply_operator: *.\n"); }
-	| "/"							{ printf("Multiply_operator: /.\n"); }
-	| "%"							{ printf("Multiply_operator: %.\n"); }
-	| "<<"							{ printf("Multiply_operator: <<.\n"); }
-	| ">>"							{ printf("Multiply_operator: >>.\n"); }
-	| "&"							{ printf("Multiply_operator: &.\n"); }
-	| "&^"							{ printf("Multiply_operator: &^.\n"); }
+	"*"							        { printf("Multiply_operator: *.\n"); }
+	| "/"							    { printf("Multiply_operator: /.\n"); }
+	| "%"							    { printf("Multiply_operator: %%.\n"); }
+	| "<<"							    { printf("Multiply_operator: <<.\n"); }
+	| ">>"							    { printf("Multiply_operator: >>.\n"); }
+	| "&"							    { printf("Multiply_operator: &.\n"); }
+	| "&^"							    { printf("Multiply_operator: &^.\n"); }
 	;
 	
 unary_op :
-	"+"							{ printf("Unary_operator: +.\n"); }
-	| "-"							{ printf("Unary_operator: -.\n"); }
-	| "!"							{ printf("Unary_operator: !.\n"); }
-	| "^"							{ printf("Unary_operator: ^.\n"); }
-	| "*"							{ printf("Unary_operator: *.\n"); }
-	| "&"							{ printf("Unary_operator: &.\n"); }
-	| "<-"							{ printf("Unary_operator: <-.\n"); }
+	"+"							        { printf("Unary_operator: +.\n"); }
+	| "-"							    { printf("Unary_operator: -.\n"); }
+	| "!"							    { printf("Unary_operator: !.\n"); }
+	| "^"							    { printf("Unary_operator: ^.\n"); }
+	| "*"							    { printf("Unary_operator: *.\n"); }
+	| "&"							    { printf("Unary_operator: &.\n"); }
+	| "<-"							    { printf("Unary_operator: <-.\n"); }
 	;
 
 PrimaryExpr :
-	Operand							{ printf("PrimaryExpr - Operand.\n"); }
+	Operand							    { printf("PrimaryExpr - Operand.\n"); }
 	| Conversion						{ printf("PrimaryExpr - Conversion.\n"); }
 	| MethodExpr						{ printf("PrimaryExpr - MethodExpr.\n"); }
-	| PrimaryExpr Selector					{ printf("PrimaryExpr - PrimaryExpr Selector.\n"); }
+	| PrimaryExpr Selector				{ printf("PrimaryExpr - PrimaryExpr Selector.\n"); }
 	| PrimaryExpr Index					{ printf("PrimaryExpr - PrimaryExpr Index.\n"); }
 	| PrimaryExpr Slice					{ printf("PrimaryExpr - PrimaryExpr Slice.\n"); }
-	| PrimaryExpr TypeAssertion				{ printf("PrimaryExpr - PrimaryExpr TypeAssertion.\n"); }
-	| PrimaryExpr Arguments					{ printf("PrimaryExpr - PrimaryExpr Arguments.\n"); }
+	| PrimaryExpr TypeAssertion			{ printf("PrimaryExpr - PrimaryExpr TypeAssertion.\n"); }
+	| PrimaryExpr Arguments				{ printf("PrimaryExpr - PrimaryExpr Arguments.\n"); }
 	;
 	
 Selector :
@@ -104,168 +145,206 @@ Selector :
 	;
 
 Index :
-	"[" Expression "]"					{ printf("Index.\n"); }
+    | Expression					{ printf("Index.\n"); }
 	;
 	
 Slice :
-	"[" '[' Expression ']' ":" '[' Expression ']' "]"		{ printf("Slice - [ [ Expression ] : [ Expression ] ].\n");}
-	| "[" '[' Expression ']' ":" Expression ":" Expression "]"	{ printf("Slice - [ [ Expression ] : [ Expression : Expression ].\n");}
-	;
+    "[" ":" "]"                                 { printf("Slice - [ : ].\n"); }
+    | "[" Expression ":" "]"                                    { printf("Slice - [ Expression : ].\n"); }
+    | "[" ":" Expression "]"                                    { printf("Slice - [ : Expression ].\n"); }
+    | "[" Expression ":" Expression "]"                                 { printf("Slice - [ Expression : Expression ].\n"); }
+    | "[" ":" Expression ":" Expression "]"                                 { printf("Slice - [ : Expression : Expression ].\n"); }
+    | "[" Expression ":" Expression ":" Expression "]"                                  { printf("Slice - [ Expression : Expression : Expression ].\n"); }
+    ;
 	
 TypeAssertion :
-	"." "(" Type ")"				{ printf("TypeAssertion.\n"); }
+	"." "(" Type ")"				    { printf("TypeAssertion.\n"); }
 	;
 	
 Arguments :
-	"(" '[' '(' ExpressionList | Type '[' "," ExpressionList ']' ')' '[' "..." ']' '[' "," ']' ']' ")" { printf("Arguments.\n"); }
-	;
+    "(" ")"                                 { printf("Arguments: ( ).\n");  }
+    | "(" ExpressionList ")"                                    { printf("Arguments: ( ExpressionList ).\n");  }
+    | "(" ExpressionList "..." ")"                                  { printf("Arguments: ( ExpressionList ... ).\n");  }
+    | "(" ExpressionList "," ")"                                    { printf("Arguments: ( ExpressionList , ).\n");  }
+    | "(" ExpressionList "..." "," ")"                                  { printf("Arguments: ( ExpressionList ... , ).\n");  }    
+    | "(" Type ")"                                  { printf("Arguments: ( Type ).\n");  }
+    | "(" Type "..." ")"                                    { printf("Arguments: ( Type ... ).\n");  }
+    | "(" Type "," ")"                                  { printf("Arguments: ( Type , ).\n");  }
+    | "(" Type "..." "," ")"                                    { printf("Arguments: ( Type ... , ).\n");  }   
+    | "(" Type "," ExpressionList ")"                                   { printf("Arguments: ( Type , ExpressionList ).\n");  }
+    | "(" Type "," ExpressionList "..." ")"                                     { printf("Arguments: ( Type , ExpressionList ... ).\n");  }
+    | "(" Type "," ExpressionList "," ")"                                   { printf("Arguments: ( Type ExpressionList , ).\n");  }
+    | "(" Type "," ExpressionList "..." "," ")"                                 { printf("Arguments: ( Type ExpressionList ... , ).\n");  }
+    ;
 	
 Operand :
-	Literal						{ printf("Operand - Literal.\n"); }
-	| OperandName '[' TypeArgs ']'						{ printf("Operand - OperandName [ TypeArgs ].\n"); } 
-	| "(" Expression ")"						{ printf("Operand - ( Expression ).\n"); }
+	Literal						        { printf("Operand - Literal.\n"); }
+	| OperandName                       { printf("Operand - OperandName.\n"); }
+	| OperandName TypeArgs		        { printf("Operand - OperandName TypeArgs.\n"); } 
+	| "(" Expression ")"				{ printf("Operand - ( Expression ).\n"); }
 	;
 	
 Literal :
-	BasicLit				{ printf("Literal - BasicLit.\n"); } 
-	| CompositeLit				{ printf("Literal - CompositeLit.\n"); } 
-	| FunctionLit				{ printf("Literal - FunctionLit.\n"); } 
+	BasicLit				            { printf("Literal - BasicLit.\n"); } 
+	| CompositeLit				        { printf("Literal - CompositeLit.\n"); } 
+	| FunctionLit				        { printf("Literal - FunctionLit.\n"); } 
 	;
 	
+FunctionLit :
+    FUNC Signature FunctionBody         { printf("FunctionLit.\n"); }
+    ;
+	
 BasicLit :
-	int_lit					{ printf("BasicLit - Int_lit.\n"); }
-	| float_lit				{ printf("BasicLit - Float_lit.\n"); }
-	| imaginary_lit				{ printf("BasicLit - Imaginary_lit.\n"); }
-	| rune_lit				{ printf("BasicLit - Rune_lit.\n"); }
-	| string_lit				{ printf("BasicLit - String_lit.\n"); }
+	int_lit					            { printf("BasicLit - Int_lit.\n"); }
+	| float_lit				            { printf("BasicLit - Float_lit.\n"); }
+	| imaginary_lit				        { printf("BasicLit - Imaginary_lit.\n"); }
+	| rune_lit				            { printf("BasicLit - Rune_lit.\n"); }
+	| STRING				            { printf("BasicLit - String_lit.\n"); }
 	;
 	
 OperandName :
-	IDENTIFIER				{ printf("OparandName - Identifier.\n"); }
-	| QualifiedIdent			{ printf("OperandName - QualifiedIdent.\n"); }
+	IDENTIFIER				            { printf("OparandName - Identifier.\n"); }
+	| QualifiedIdent			        { printf("OperandName - QualifiedIdent.\n"); }
 	
 CompositeLit :
 	LiteralType LiteralValue
 	;
 	
 LiteralType :
-	StructType					{ printf("LiteralType - StructType.\n"); }
-	| ArrayType					{ printf("LiteralType - ArrayType.\n"); }
+	StructType					        { printf("LiteralType - StructType.\n"); }
+	| ArrayType					        { printf("LiteralType - ArrayType.\n"); }
 	| "[" "..." "]" ElementType			{ printf("LiteralType - [ ... ] ElementType.\n"); }
-	| SliceType					{ printf("LiteralType - SliceType.\n"); }
-	| MapType					{ printf("LiteralType - MapType.\n"); }
-	| TypeName '[' TypeArgs ']'			{ printf("LiteralType - Typename [ TypeArgs ].\n"); }
+	| SliceType					        { printf("LiteralType - SliceType.\n"); }
+	| MapType					        { printf("LiteralType - MapType.\n"); }
+	| TypeName                          { printf("LiteralType - TypeName.\n"); }
+	| TypeName TypeArgs     			{ printf("LiteralType - TypeName TypeArgs.\n"); }
 	;
 	
 LiteralValue :
-	"{" '[' ElementList '[' "," ']' ']' "}"		{ printf("LiteralValue.\n"); }
-	;
+    "{" "}"                         { printf("LiteralValue - { }.\n"); }
+    | "{" ElementList "}"                           { printf("LiteralValue - { ElementList }.\n"); }
+    | "{" ElementList "," "}"                           { printf("LiteralValue - { ElementList , }.\n"); }
+    ;
 	
 ElementList :
-	KeyedElement '{' "," KeyedElement '}'		{ printf("ElementList.\n"); }
+	KeyedElement KeyedElements		{ printf("ElementList.\n"); }
 	;
 	
+KeyedElements :
+    | KeyedElements KeyedElement                { printf("KeyedElements.\n"); }
+    ;
+    
 KeyedElement :
- 	'[' Key ":" ']' Element				{ printf("KeyedElement.\n"); }
- 	;
+    Element                             { printf("KeyedElement.\n"); }
+    | Key ":" Element                               { printf("KeyedElement.\n"); }
+    ;
  	
 Key :
- 	FieldName					{ printf("Key - FieldName.\n"); } 
- 	| Expression					{ printf("Key - Expression.\n"); } 
- 	| LiteralValue					{ printf("Key - LiteralValue.\n"); }
+ 	FieldName					        { printf("Key - FieldName.\n"); } 
+ 	| Expression					    { printf("Key - Expression.\n"); } 
+ 	| LiteralValue					    { printf("Key - LiteralValue.\n"); }
  	;
  	
 FieldName : 
-	IDENTIFIER					{ printf("FieldName.\n"); }
+	IDENTIFIER					        { printf("FieldName.\n"); }
 	;
 	
 Element : 
-	Expression					{ printf("Element - Expression.\n"); }
-	| LiteralValue					{ printf("Element - LiteralValue.\n"); }
+	Expression					        { printf("Element - Expression.\n"); }
+	| LiteralValue					    { printf("Element - LiteralValue.\n"); }
 	;
-	
+
 Type :
-	TypeName '[' TypeArgs ']' 	{ printf("Type - Typename [ TypeArgs ].\n"); }
-	| TypeLit			{ printf("Type - TypeLit.\n"); }
-	| "(" Type ")"			{ printf("Type - ( Type ).\n"); }
+    TypeName                            { printf("Type - TypeName.\n"); }
+	| TypeName TypeArgs        	        { printf("Type - Typename TypeArgs.\n"); }
+	| TypeLit			                { printf("Type - TypeLit.\n"); }
+	| "(" Type ")"			            { printf("Type - ( Type ).\n"); }
 	;
 
 TypeName :
-	IDENTIFIER 			{ printf("TypeName - identifier.\n"); }
-	| QualifiedIdent 		{ printf("TypeName - QualifiedIdent.\n"); }
+	IDENTIFIER 			                { printf("TypeName - identifier.\n"); }
+	| QualifiedIdent 		            { printf("TypeName - QualifiedIdent.\n"); }
 	;
 
 TypeArgs :
-	"[" TypeList '[' "," ']' "]" 	{ printf("TypeArgs - [ TypeList [ , ] ].\n"); }
+    "[" TypeList "]"                    { printf("TypeArgs - [ TypeList ].\n"); }
+	"[" TypeList "," "]" 	    { printf("TypeArgs - [ TypeList , ].\n"); }
 	;
 	
 TypeList :
-	Type '{' "," Type '}' 		{ printf("TypeList - Type { , Type }.\n"); }
-	;
+    Type                        { printf("TypeList - Type.\n"); }
+    | TypeList "," Type                     { printf("TypeList - TypeList , Type.\n"); }
+    ;
 	
 TypeLit :
-	ArrayType			{ printf("TypeLit - ArrayType.\n");}
-	| FunctionType			{ printf("TypeLit - FunctionType.\n"); }
-	| StructType			{ printf("TypeLit - StructType.\n"); }
-	| PointerType			{ printf("TypeLit - PointerType.\n"); } 
-	| InterfaceType		{ printf("TypeLit - InterfaceType.\n"); } 
-	| SliceType			{ printf("TypeLit - SliceType.\n"); }
-	| MapType			{ printf("TypeLit - MapType.\n"); }
-	| ChannelType			{ printf("TypeLit - ChannelType.\n"); }
+	ArrayType			                { printf("TypeLit - ArrayType.\n");}
+	| FunctionType			            { printf("TypeLit - FunctionType.\n"); }
+	| StructType			            { printf("TypeLit - StructType.\n"); }
+	| PointerType			            { printf("TypeLit - PointerType.\n"); } 
+	| InterfaceType		                { printf("TypeLit - InterfaceType.\n"); } 
+	| SliceType			                { printf("TypeLit - SliceType.\n"); }
+	| MapType			                { printf("TypeLit - MapType.\n"); }
+	| ChannelType			            { printf("TypeLit - ChannelType.\n"); }
 	;
 
 ArrayType :
-	"[" ArrayLength "]" ElementType { printf("ArrayType.\n"); }
+	"[" ArrayLength "]" ElementType     { printf("ArrayType.\n"); }
 	;
 
 ArrayLength :
-	Expression			{ printf("ArrayLength.\n"); }
+	Expression			                { printf("ArrayLength.\n"); }
 	;
 	
 ElementType :
-	Type				{ printf("ElementType.\n"); }
+	Type				                { printf("ElementType.\n"); }
 	;
 
 FunctionType :
-	FUNC Signature 			
-			{ printf("FunctionType.\n"); }
-	;
-
-/* Struct Types */	
-StructType :
-	STRUCT "{" '{' FieldDecl ";" '}' "}"		{ printf("StructType.\n"); }
+	FUNC Signature 		                { printf("FunctionType.\n"); }
 	;
 	
+StructType :
+	STRUCT "{" FieldDecls "}"		{ printf("StructType.\n"); }
+	;
+	
+FieldDecls :
+    | FieldDecls FieldDecl              { printf("FieldDecls.\n"); }
+    ;
+    
 FieldDecl :
-	IdentifierList Type '[' Tag ']'			{ printf("FieldDecl - IdentifierList Type [ Tag ].\n"); }
-	| EmbeddedField '[' Tag ']'			{ printf("FieldDecl - EmbeddedField [ Tag ].\n"); }
+    IdentifierList Type                 { printf("FieldDecl - IdentifierList Type.\n"); }
+	| IdentifierList Type Tag     	    { printf("FieldDecl - IdentifierList Type [ Tag ].\n"); }
+	| EmbeddedField                     { printf("FieldDecl - EmbeddedField.\n"); }
+	| EmbeddedField Tag     			{ printf("FieldDecl - EmbeddedField [ Tag ].\n"); }
 	;
 	
 EmbeddedField :
- 	'[' "*" ']' TypeName '[' TypeArgs ']'		{ printf("EmbeddedField.\n"); }
- 	;
+    TypeName                        { printf("EmbeddedField - TypeName.\n"); }
+    | "*" TypeName                      { printf("EmbeddedField - * TypeName.\n"); }
+    | TypeName TypeArgs                     { printf("EmbeddedField - TypeName TypeArgs.\n"); }
+    | "*" TypeName TypeArgs                     { printf("EmbeddedField - * TypeName TypeArgs.\n"); }
+    ;
+ 	
 Tag : 
-	string_lit					{ printf("Tag.\n"); }
+	STRING					            { printf("Tag.\n"); }
 	;
 	
-/**/
-
-
-/* Pointer Types */	
 PointerType :
-    "*" BaseType                { printf("PointerType.\n"); }
+    "*" BaseType                        { printf("PointerType.\n"); }
     ;
 
 BaseType :
-    Type                        { printf("BaseType.\n"); }
+    Type                                { printf("BaseType.\n"); }
     ;
-/**/
-
-
-/* Interface Types */	
+    
 InterfaceType :
-    INTERFACE "{" '{' InterfaceElem ";" '}' "}"         { printf("InterfaceType.\n"); };
+    INTERFACE "{" InterfaceElems "}"         { printf("InterfaceType.\n"); };
+    ;
 
+InterfaceElems :
+    | InterfaceElems InterfaceElem                  { printf("InterfaceElems.\n"); }
+    ;
+    
 InterfaceElem :
     MethodElem                          { printf("InterfaceElem - MethodElem.\n"); }
     | TypeElem                          { printf("InterfaceElem - TypeElem.\n"); }
@@ -280,9 +359,10 @@ MethodName :
     ;
     
 TypeElem :
-    TypeTerm '{' "|" TypeTerm '}'       { printf("TypeElem\n"); }
+    TypeTerm                            { printf("TypeElem.\n"); }
+    | TypeElem "|" TypeTerm             { printf("TypeElem\n"); }
     ;
-
+    
 TypeTerm :
     Type                                { printf("TypeTerm - Type\n"); }
     | UnderlyingType                    { printf("TypeTerm - UnderlyingType\n"); }
@@ -290,17 +370,12 @@ TypeTerm :
 
 UnderlyingType :
     "~" Type                            { printf("UnderlyingType\n"); }
-/**/
-
-
-/* Slice Types */
+    ;
+    
 SliceType :
     "[" "]" ElementType                 { printf("SliceType\n"); }
     ;
-/**/
 
-
-/* Map Types */
 MapType :
     "map" "[" KeyType "]" ElementType   { printf("MapType\n"); }
     ;
@@ -308,18 +383,13 @@ MapType :
 KeyType :
     Type                                { printf("KeyType\n"); }
     ;
-/**/
 
-
-/* Channel Types */
-ChannelType :
-    '(' CHAN                          { printf("ChannelType - chan\n"); }
-    | CHAN "<-"                       { printf("ChannelType - chan <-\n"); }
-    | "<-" CHAN ')' ElementType       { printf("ChannelType - chan ElementType\n"); }
+ChannelType :    
+    CHAN ElementType                    { printf("ChannelType - chan\n"); }
+    | CHAN ARROW_LEFT ElementType       { printf("ChannelType - chan <-\n"); }
+    | ARROW_LEFT CHAN ElementType       { printf("ChannelType - chan ElementType\n"); }
     ;
-/**/
 
-/* int_lit Types */
 int_lit :
     decimal_lit                         { printf("int_lit - decimal_lit\n"); }
     | binary_lit                        { printf("int_lit - binary_lit\n"); }           
@@ -328,8 +398,8 @@ int_lit :
     ;
 
 decimal_lit :
-    "0"                                                         { printf("decimal_lit - 0\n"); }
-    | '(' "1" … "9" ')' '[' '[' "_" ']' decimal_digits ']'      { printf("decimal_lit - 1...9\n"); }
+    "0"                                             { printf("decimal_lit - 0\n"); }
+    | DIGIT '[' '[' "_" ']' decimal_digits ']'      { printf("decimal_lit - 1...9\n"); }
     ;
 
 binary_lit :
@@ -348,7 +418,7 @@ hex_lit :
     ;
 
 decimal_digits :
-    decimal_digit '{' '[' "_" ']' decimal_digit '}'         { printf("decimal_digits\n"); }
+    decimal_digit '{' '[' "_" ']' decimal_digit '}'     { printf("decimal_digits\n"); }
     ;
 
 binary_digits :
@@ -364,27 +434,22 @@ hex_digits :
     ;
 
 decimal_digit :
-    "0" … "9"                           { printf("decimal_digit\n"); }
+    DIGIT                           { printf("decimal_digit\n"); }
     ;
 
 binary_digit :
-    "0"                                 { printf("binary_digit - 0\n"); }
-    | "1"                               { printf("binary_digit - 1\n"); }
+    "0"                             { printf("binary_digit - 0\n"); }
+    | "1"                           { printf("binary_digit - 1\n"); }
     ;
 
 octal_digit :
-    "0" … "7"                           { printf("octal_digit\n"); }
+    OCT                             { printf("octal_digit\n"); }
     ;
 
 hex_digit :
-    "0" … "9"                           { printf("hex_digit - 0 ... 9 \n"); }
-    | "A" … "F"                         { printf("hex_digit - A ... F \n"); }
-    | "a" … "f"                         { printf("hex_digit - a ... f \n"); }
+    HEX                             { printf("hex_digit.\n"); }
     ;
-/**/
 
-
-/* int_lit Types */
 float_lit :
     decimal_float_lit                   { printf("float_lit - decimal_float_lit\n"); }
     | hex_float_lit                     { printf("float_lit - decimal_float_lit\n"); }
@@ -393,7 +458,7 @@ float_lit :
 decimal_float_lit :
     decimal_digits "." '[' decimal_digits ']' '[' decimal_exponent ']'      { printf("decimal_float_lit - 1\n"); } 
     | decimal_digits decimal_exponent                                       { printf("decimal_float_lit - 2\n"); }
-    | "." decimal_digits [ decimal_exponent ']'                             { printf("decimal_float_lit - 3\n"); }
+    | "." decimal_digits '[' decimal_exponent ']'                             { printf("decimal_float_lit - 3\n"); }
     ;
 
 decimal_exponent :
@@ -417,27 +482,20 @@ hex_exponent :
     '(' "p"                                         { printf("hex_exponent - 1\n"); }
     | "P" ')' '[' "+" | "-" ']' decimal_digits      { printf("hex_exponent - 2\n"); }
     ;
-/**/
 
-
-/* imaginary_lit Type*/
 imaginary_lit :
-    '('decimal_digits           { printf("imaginary_lit - decimal_digits\n"); }
-    | int_lit                   { printf("imaginary_lit - int_lit\n"); }
-    | float_lit) "i"            { printf("imaginary_lit - float_lit\n"); }
+    decimal_digits "i"          { printf("imaginary_lit - decimal_digits\n"); }
+    | int_lit "i"                { printf("imaginary_lit - int_lit\n"); }
+    | float_lit "i"            { printf("imaginary_lit - float_lit\n"); }
     ;
-/**/
 
-
-/* rune_lit Types*/
 rune_lit :
     "'" '(' unicode_value       { printf("rune_lit - unicode_value\n"); }
     | byte_value ')' "'"        { printf("rune_lit - byte_value\n"); }
     ;
 
 unicode_value :
-    unicode_char                { printf("unicode_value - unicode_char\n"); }
-    | little_u_value            { printf("unicode_value - little_u_value\n"); }
+    little_u_value            { printf("unicode_value - little_u_value\n"); }
     | big_u_value               { printf("unicode_value - big_u_value\n"); }
     | escaped_char              { printf("unicode_value - escaped_char\n"); }
     ;
@@ -448,56 +506,28 @@ byte_value :
     ;
 
 octal_byte_value :
-    `\` octal_digit octal_digit octal_digit             { printf("octal_byte_value\n"); }
+    OCT_BYTE             { printf("octal_byte_value\n"); }
     ;
 
 hex_byte_value :
-    `\` "x" hex_digit hex_digit                         { printf("hex_byte_value\n"); }
+    HEX_BYTE                         { printf("hex_byte_value\n"); }
     ;
 
 little_u_value :
-    `\` "u" hex_digit hex_digit hex_digit hex_digit     { printf("little_u_value\n"); }
+    LITTLE_U     { printf("little_u_value\n"); }
     ;
 
 big_u_value :
-    `\` "U" hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit hex_digit         { printf("big_u_value\n"); }
+    BIG_U         { printf("big_u_value\n"); }
     ;
 
 escaped_char :
-    `\` '(' "a"             { printf("escaped_char - a\n"); }
-    | "b"                   { printf("escaped_char - b\n"); }
-    | "f"                   { printf("escaped_char - f\n"); }
-    | "n"                   { printf("escaped_char - n\n"); }
-    | "r"                   { printf("escaped_char - r\n"); }
-    | "t"                   { printf("escaped_char - t\n"); }
-    | "v"                   { printf("escaped_char - v\n"); }
-    | `\`                   { printf("escaped_char - slash\n"); }
-    | "'"                   { printf("escaped_char - '\n"); }
-    | `"` ')'               { printf("escaped_char - \"\n"); }
+    ESCAPED CHAR    { printf("escaped_char.\n"); }
     ;
-/**/
-
-
-/* string_lit Types*/
-string_lit :
-    raw_string_lit                      { printf("string_lit - raw_string_lit\n"); }
-    | interpreted_string_lit            { printf("string_lit - interpreted_string_lit\n"); }
-    ;
-
-raw_string_lit :
-    "`" '{' unicode_char                { printf("raw_string_lit - unicode_char\n"); }
-    | newline '}' "`"                   { printf("raw_string_lit - newline\n"); }
-    ;
-
-interpreted_string_lit :
-    `"` '{' unicode_value                 { printf("interpreted_string_lit - unicode_value\n"); }
-    | byte_value '}' `"`                  { printf("interpreted_string_lit - byte_value\n"); }
-    ;
-/**/
-
 
 Signature :
-	Parameters '[' Result ']'			{ printf("Signature - Parameters Result.\n"); }
+    Parameters
+    | Parameters Result			{ printf("Signature - Parameters Result.\n"); }
 	;
 	
 Result :
@@ -506,26 +536,32 @@ Result :
 	;
 	
 Parameters :
-	"(" '[' ParameterList '[' "," ']' ']' ")" 	{ printf("Parameters.\n"); }
+    "(" ")"                         { printf("Parameters - ( ).\n"); }
+    | "(" ParameterList ")"        { printf("Parameters - ( ParametersList ).\n"); }
+    | "(" ParameterList "," ")" 	{ printf("Parameters - ( ParametersList , ).\n"); }
 	;
 	
 ParameterList :
-	ParameterDecl '{' "," ParameterDecl '}'		{ printf("ParameterList.\n"); }
+    ParameterDecl
+    | ParameterList "," ParameterDecl		{ printf("ParameterList.\n"); }
 	;
 
 ParameterDecl :
-	'[' IdentifierList ']' '[' "..." ']' Type	{ printf("ParameterDecl.\n"); }
-	;
-
+    Type                        { printf("ParameterDecl - Type.\n"); }
+    | IdentifierList Type                       { printf("ParameterDecl - IdentifierList Type.\n"); }
+    | "..." Type                        { printf("ParameterDecl - ... Type.\n"); }
+    | IdentifierList "..." Type                     { printf("ParameterDecl - IdentifierList ... Type.\n"); }
+    ;
+    
 Block :
 	"{" StatementList "}" 				{ printf("Block.\n"); }
 	;
 	
 StatementList :
-	'{' Statement ";" '}'				{ printf("StatementList.\n"); }
-	;
+    Statement                       { printf("StatementList - Statement.\n"); }
+    | StatementList Statement                       { printf("StatementList - StatementList Statement.\n"); }
+    ;
 
-/*Statement Types*/
 Statement :
     Declaration                         { printf("Statement - Declaration\n"); }
     | LabeledStmt                       { printf("Statement - LabeledStmt\n"); }
@@ -543,7 +579,38 @@ Statement :
     | ForStmt                           { printf("Statement - ForStmt\n"); }
     | DeferStmt                         { printf("Statement - DeferStmt\n"); }
     ;
-
+    
+SelectStmt : 
+    SELECT "{" CommClauses "}"       { printf("SelectStmt.\n"); }
+    ;
+    
+CommClauses :
+    | CommClauses CommClause                { printf("CommClauses.\n"); }
+    ;
+    
+CommClause :
+    CommCase ":" StatementList              { printf("CommClause.\n"); }
+    ;
+    
+CommCase :
+    CASE SendStmt                           { printf("CommCase - SendStmt.\n"); }
+    | CASE RecvStmt                         { printf("CommCase - RecvStmt.\n"); }
+    | DEFAULT                               { printf("CommCase - default.\n"); }
+    ;
+    
+RecvStmt :
+    RecvExpr                            { printf("RecvStmt - RecvExpr.\n"); }
+    | ExpressionList "=" RecvExpr                           { printf("RecvStmt - ExpressionList = RecvExpr.\n"); }
+    | IdentifierList ":=" RecvExpr                          { printf("RecvStmt - IdentifierList := RecvExpr.\n"); }
+    ;
+    
+RecvExpr :
+    Expression                              { printf("RecvExpr.\n"); }
+    ;
+    
+PostStmt :
+    SimpleStmt                          { printf("PostStmt.\n"); }
+    
 SimpleStmt :
     EmptyStmt                           { printf("SimpleStmt - EmptyStmt\n"); }
     | ExpressionStmt                    { printf("SimpleStmt - ExpressionStmt\n"); }
@@ -552,11 +619,38 @@ SimpleStmt :
     | Assignment                        { printf("SimpleStmt - Assignment\n"); }
     | ShortVarDecl                      { printf("SimpleStmt - ShortVarDecl\n"); }
     ;
+    
+TypeSwitchStmt :
+    SWITCH TypeSwitchGuard "{" TypeCaseClauses                          { printf("TypeSwitchStmt.\n"); }
+    | SWITCH SimpleStmt ";" TypeSwitchGuard "{" TypeCaseClauses "}"     { printf("TypeSwitchStmt.\n"); }
+    ;
+
+TypeSwitchGuard :
+    PrimaryExpr "." "(" TYPE ")"                                        { printf("TypeSwitchGuard - PrimaryExpr . ( Type ).\n"); }
+    | IDENTIFIER ":=" PrimaryExpr "." "(" TYPE ")"                      { printf("TypeSwitchGuard - Identifier := PrimaryExpr . ( Type ).\n"); }
+    ;
+   
+TypeCaseClauses :
+    | TypeCaseClauses TypeCaseClause                                                { printf("TypeCaseClauses.\n"); }
+    ;
+    
+TypeCaseClause :
+    TypeSwitchCase ":" StatementList                                                { printf("TypeCaseClause.\n"); }
+    ;
+   
+TypeSwitchCase :
+    CASE TypeList                                                                   { printf("TypeSwitchCase - case TypeList.\n"); }
+    | DEFAULT                                                                       { printf("TypeSwitchCase - default.\n"); }
+    ;
 
 Declaration :
     ConstDecl                           { printf("Declaration - ConstDecl\n"); }
     | TypeDecl                          { printf("Declaration - TypeDecl\n"); }
     | VarDecl                           { printf("Declaration - VarDecl\n"); }
+    ;
+
+TopLevelDecls :
+    | TopLevelDecls TopLevelDecl        { printf("TopLevelDecls.\n"); }
     ;
 
 TopLevelDecl :
@@ -566,17 +660,23 @@ TopLevelDecl :
     ;
 
 ConstDecl :
-    "const" '(' ConstSpec                                       { printf("ConstDecl - 1\n"); }  
-    | "(" '{' ConstSpec ";" '}' ")" ')'                         { printf("ConstDecl - 2\n"); }
+    CONST ConstSpec                                       { printf("ConstDecl - 1\n"); }  
+    | CONST "(" ConstSpecs ")"                 { printf("ConstDecl - 2\n"); }
+    ;
+
+ConstSpecs :
+    | ConstSpecs ConstSpec                              { printf("ConstSpecs.\n"); }
     ;
 
 ConstSpec :
-    IdentifierList '[' '[' Type ']' "=" ExpressionList ']'      { printf("ConstSpec\n"); }
+    IdentifierList                                      { printf("ConstSpec - IdentifierList.\n"); }
+    | IdentifierList "=" ExpressionList                 { printf("ConstSpec - IdentifierList = ExpressionList.\n"); }
+    | IdentifierList Type "=" ExpressionList            { printf("ConstSpec - IdentifierList Type = ExpressionList.\n"); }
     ;
 
 TypeDecl :
-    Type ( TypeSpec                                             { printf("TypeDecl - 1\n"); }
-    | "(" '{' TypeSpec ";" '}' ")" ')'                          { printf("TypeDecl - 2\n"); }
+    TYPE TypeSpec                                             { printf("TypeDecl - 1\n"); }
+    | TYPE "(" '{' TypeSpec ";" '}' ")"                          { printf("TypeDecl - 2\n"); }
     ;
 
 TypeSpec :
@@ -596,10 +696,21 @@ MethodDecl :
     FUNC Receiver MethodName Signature '[' FunctionBody ']'     { printf("MethodDecl\n"); }
     ;
 
+Conversion :
+    Type "(" Expression '[' "," ']' ")"                { printf("Conversion.\n"); }
+
 Receiver :
     Parameters                                                  { printf("Receiver\n"); }
     ;
-
+    
+MethodExpr :
+    ReceiverType "." MethodName                             { printf("MethodExpr.\n"); }
+    ;
+    
+ReceiverType :
+    Type                                                    { printf("ReceiverType.\n"); }
+    ;
+    
 LabeledStmt :
     Label ":" Statement                                         { printf("LabeledStmt\n"); }
     ;
@@ -683,7 +794,7 @@ SwitchStmt :
 ExprSwitchStmt :
     "switch" '[' SimpleStmt ";" ']' '[' Expression ']' "{" '{' ExprCaseClause '}' "}"   { printf("ExprSwitchStmt\n"); }
     ;
-
+    
 ExprCaseClause :
     ExprSwitchCase ":" StatementList                            { printf("ExprCaseClause\n"); }
     ;
@@ -692,7 +803,34 @@ ExprSwitchCase :
     CASE ExpressionList                                         { printf("ExprSwitchCase - ExpressionList\n"); }
     | DEFAULT                                                   { printf("ExprSwitchCase - DEFAULT\n"); }
     ;
+    
+ForStmt :
+    FOR '[' Condition ']' Block
+    | FOR '[' ForClause ']' Block
+    | FOR '[' RangeClause ']' Block    
+    ;
+    
+DeferStmt :
+    DEFER Expression                    { printf("DeferStmt.\n"); }
+    ;
+    
+InitStmt :
+    SimpleStmt                          { printf("InitStmt.\n"); }
+    ;
+    
+RangeClause :
+    '[' ExpressionList "=" ']' RANGE Expression                 { printf("RangeClause - ExpressionList.\n"); }
+    | '[' IdentifierList ":=" ']' RANGE Expression              { printf("RangeClause - IdentifierList.\n"); }
+    ;
+    
+Condition :
+    Expression              { printf("Condition.\n"); }
+    ;
 /**/
+
+ForClause :
+    '[' InitStmt ']' ";" '[' Condition ']' ";" '[' PostStmt ']'         { printf("ForClause.\n"); }
+    ;
 	
 IdentifierList :
 	IDENTIFIER					{ printf("IdentifierList - identifier.\n"); }
@@ -744,13 +882,10 @@ QualifiedIdent :
 	PackageName "." IDENTIFIER	{ printf("QualifiedIdent - PackageName . identifier.\n"); }
 	;
 
-PackageName :
-	IDENTIFIER			{ printf("PackageName - identifier.\n"); }
-	;
-
 %%
 
-int main() {	
+int main() {
+    printf("\n\n");
 	yyparse();
 	return 0;
 }
