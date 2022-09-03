@@ -48,12 +48,23 @@ NIL             "nil"
 "var"                          { /*printf("var");*/             return VAR; }
 "<-"                           { /*printf("arrow left");*/      return ARROW_LEFT; }
 
-{VAR_TYPE}                      { /*printf("type");*/           return VAR_TYPE; }
+{VAR_TYPE}                      { /*printf("type");*/
+                                    yylval.buffer[0] = *yytext;
+                                    yylval.buffer[1] = yytext[1];
+                                    yylval.buffer[2] = yytext[2];
+                                    yylval.buffer[3] = yytext[3];
+                                    yylval.buffer[4] = yytext[4]; return VAR_TYPE; }
+                                    
 {BOOL_CONST}                    { /*printf("true");*/           return BOOL_CONST; } 
 {NIL}                           { /*printf("nil");*/            return NIL; }
 
 \"(\\.|[^"\\])*\"               { /*printf("STRING");*/         return STRING; }
-[a-zA-Z][a-zA-Z0-9_]*           { /*printf("IDENTIFIER");*/     return IDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9_]*           { /*printf("IDENTIFIER: %c%c%c%c", *yytext, yytext[1], yytext[2], yytext[3]);*/
+                                    yylval.buffer[0] = *yytext;
+                                    yylval.buffer[1] = yytext[1];
+                                    yylval.buffer[2] = yytext[2];
+                                    yylval.buffer[3] = yytext[3];
+                                    yylval.buffer[4] = yytext[4]; return IDENTIFIER; }
 {DIGIT}		                    { /*printf("%c", *yytext);*/    return DIGIT; };
 [\t ]                           { /*printf("%c", *yytext);*/ }
 [\n]                            { /*printf("\n");*/ }
