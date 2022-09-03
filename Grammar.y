@@ -379,7 +379,7 @@ SliceType :
     ;
 
 MapType :
-    "map" '[' KeyType ']' ElementType   { printf("MapType\n"); }
+    MAP '[' KeyType ']' ElementType     { printf("MapType\n"); }
     ;
 
 KeyType :
@@ -400,39 +400,55 @@ int_lit :
     ;
 
 decimal_lit :
-    "0"                                             { printf("decimal_lit - 0\n"); }
-    | DIGIT '[' '[' "_" ']' decimal_digits ']'      { printf("decimal_lit - 1...9\n"); }
+    '0'                                 { printf("decimal_lit - 0.\n" }                      
+    | DIGIT                             { printf("decimal_lit - digit.\n" }
+    | DIGIT decimal_digits              { printf("decimal_lit - digit decimal_digits.\n"); }                 
+    | DIGIT '_' decimal_digits          { printf("decimal_lit - digit _ decimal_digits.\n"); }                         
     ;
 
 binary_lit :
-    "0" '(' "b"                           { printf("binary_lit - 0 b\n"); }
-    | "B" ')' '[' "_" ']' binary_digits   { printf("binary_lit - B binary_digits\n"); }
+    '0' 'b' binary_digits                   { printf("binary_lit - 0 b binary_digits.\n"); }
+    | '0' 'B' binary_digits                 { printf("binary_lit - 0 B binary_digits.\n"); }
+    | '0' 'b' '_' binary_digits                 { printf("binary_lit - 0 b _ binary_digits.\n"); }
+    | '0' 'B' '_' binary_digits                 { printf("binary_lit - 0 B _ binary_digits.\n"); }
     ;
 
 octal_lit :
-    "0" '[' "o"                               { printf("binary_lit - 0 o\n"); }
-    | "O" ']' '[' "_" ']' octal_digits        { printf("binary_lit - 0 octal_digits\n"); }
+    '0' 'o' octal_digits                    { printf("octal_lit - 0 o octal_digits.\n"); }
+    | '0' 'O' octal_digits                  { printf("octal_lit - 0 O octal_digits.\n"); }
+    | '0' 'o' '_' octal_digits                  { printf("octal_lit - 0 o _ octal_digits.\n"); }
+    | '0' 'O' '_' octal_digits                  { printf("octal_lit - 0 O _ octal_digits.\n"); }
     ;
 
 hex_lit :
-    "0" '(' "x"                                 { printf("hex_lit - 0 x\n"); }
-    | "X" ')' '[' "_" ']' hex_digits            { printf("hex_lit - X hex_digits\n"); }
+    '0' 'x' hex_digits                  { printf("hex_lit - 0 x hex_digits" }
+    | '0' 'X' hex_digits                    { printf("hex_lit - 0 X hex_digits" }
+    | '0' 'x' '_' hex_digits                    { printf("hex_lit - 0 x _ hex_digits" }
+    | '0' 'X' '_' hex_digits                    { printf("hex_lit - 0 X _ hex_digits" }
     ;
 
 decimal_digits :
-    decimal_digit '{' '[' "_" ']' decimal_digit '}'     { printf("decimal_digits\n"); }
+    decimal_digit                       { printf("decimal_digits - decimal_digit.\n"); }
+    | decimal_digits decimal_digit                      { printf("decimal_digits - decimal_digits decimal_digit.\n"); }
+    | decimal_digits '_' decimal_digit                      { printf("decimal_digits - decimal_digits _ decimal_digit.\n"); }
     ;
 
 binary_digits :
-    binary_digit '{' '[' "_" ']' binary_digit '}'       { printf("binary_digits\n"); }
+    binary_digit                       { printf("binary_digits - binary_digit.\n"); }
+    | binary_digits binary_digit                      { printf("binary_digits - binary_digits binary_digit.\n"); }
+    | binary_digits '_' binary_digit                      { printf("binary_digits - binary_digits _ binary_digit.\n"); }
     ;
 
 octal_digits :
-    octal_digit '{' '[' "_" ']' octal_digit '}'         { printf("octal_digits\n"); }
+    octal_digit                       { printf("octal_digits - octal_digit.\n"); }
+    | octal_digits octal_digit                      { printf("octal_digits - octal_digits octal_digit.\n"); }
+    | octal_digits '_' octal_digit                      { printf("octal_digits - octal_digits _ octal_digit.\n"); }
     ;
 
 hex_digits :
-    hex_digit '{' '[' "_" ']' hex_digit '}'             { printf("hex_digits\n"); }
+    hex_digit                       { printf("hex_digits - hex_digit.\n"); }
+    | hex_digits hex_digit                      { printf("hex_digits - hex_digits hex_digit.\n"); }
+    | hex_digits '_' hex_digit                      { printf("hex_digits - hex_digits _ hex_digit.\n"); }
     ;
 
 decimal_digit :
@@ -458,44 +474,59 @@ float_lit :
     ;
 
 decimal_float_lit :
-    decimal_digits '.' '[' decimal_digits ']' '[' decimal_exponent ']'      { printf("decimal_float_lit - 1\n"); } 
-    | decimal_digits decimal_exponent                                       { printf("decimal_float_lit - 2\n"); }
-    | '.' decimal_digits '[' decimal_exponent ']'                             { printf("decimal_float_lit - 3\n"); }
+    decimal_digits '.'                      { printf("decimal_float_lit - decimal_digits ..\n"); }
+    | decimal_digits '.' decimal_digits                     { printf("decimal_float_lit - decimal_digits . decimal_digits.\n"); }
+    | decimal_digits '.' decimal_exponent                       { printf("decimal_float_lit - decimal_digits . decimal_exponent.\n"); }
+    | decimal_digist '.' decimal_digits decimal_exponent                        { printf("decimal_float_lit - decimal_digits . decimal_digits decimal_exponent.\n"); }
+    | decimal_digits decimal_exponent                       { printf("decimal_float_lit - decimal_digits decimal_exponent.\n"); }
+    | '.' decimal_digits                        { printf("decimal_float_lit - . decimal_digits.\n"); }
+    | '.' decimal_digits decimal_exponent                       { printf("decimal_float_lit - . decimal_digits decimal_exponent.\n"); }
     ;
 
 decimal_exponent :
-    '(' "e"                                 { printf("decimal_exponent - e\n"); }
-    | "E" ')' '[' "+"                       { printf("decimal_exponent - E\n"); }
-    | "-" ']' decimal_digits                { printf("decimal_exponent - decimal_digits\n"); }
+    'e' decimal_digits                  { printf("deicmal_exponent - 'e' decimal_digits.\n"); }
+    | 'E' decimal_digits                    { printf("deicmal_exponent - 'E' decimal_digits.\n"); }
+    | 'e' '+' decimal_digits                    { printf("deicmal_exponent - 'e' '+' decimal_digits.\n"); }
+    | 'e' '-' decimal_digits                    { printf("deicmal_exponent - 'e' '-' decimal_digits.\n"); }
+    | 'E' '+' decimal_digits                    { printf("deicmal_exponent - 'E' '+' decimal_digits.\n"); }
+    | 'E' '-' decimal_digits                    { printf("deicmal_exponent - 'E' '-' decimal_digits.\n"); }
     ;
 
 hex_float_lit :
-    "0" '(' "x"                             { printf("hex_float_lit - 0\n"); }
-    | "X" ')' hex_mantissa hex_exponent     { printf("hex_float_lit - X\n"); }
+    '0' 'x' hex_mantissa hex_exponent       { printf("hex_float_lit - '0' 'x' hex_mantissa hex_exponent.\n"); }
+    | '0' 'X' hex_mantissa hex_exponent     { printf("hex_float_lit - '0' 'X' hex_mantissa hex_exponent.\n"); }
     ;
 
 hex_mantissa :
-    '[' "_" ']' hex_digits '.' '[' hex_digits ']'   { printf("hex_mantissa - 1\n"); }
-    | '[' "_" ']' hex_digits                        { printf("hex_mantissa - 2\n"); }
-    | '.' hex_digits                                { printf("hex_mantissa - 3\n"); }
+    hex_digits '.'                      { printf("hex_mantissa - hex_digits ..\n"); }
+    | '_' hex_digits '.'                        { printf("hex_mantissa - _ hex_digits ..\n"); }
+    | hex_digits '.' hex_digits                     { printf("hex_mantissa - hex_digits . hex_digits.\n"); }
+    | '_' hex_digits '.' hex_digits                     { printf("hex_mantissa - _ hex_digits . hex_digits.\n"); }
+    | hex_digits                        { printf("hex_mantissa - hex_digits.\n"); }
+    | '_' hex_digits                        { printf("hex_mantissa - _ hex_digits.\n"); }
+    | '.' hex_digits                        { printf("hex_mantissa - . hex_digits.\n"); }
     ;
 
 hex_exponent :
-    '(' "p"                                         { printf("hex_exponent - 1\n"); }
-    | "P" ')' '[' "+" | "-" ']' decimal_digits      { printf("hex_exponent - 2\n"); }
+    'p' decimal_digits                      { printf("hex_exponent - p decimal_digits.\n"); }
+    | 'P' decimal_digits                        { printf("hex_exponent - P decimal_digits.\n"); }
+    | 'p' '+' decimal_digits                        { printf("hex_exponent - p + decimal_digits.\n"); }
+    | 'p' '-' decimal_digits                        { printf("hex_exponent - p - decimal_digits.\n"); }
+    | 'P' '+' decimal_digits                        { printf("hex_exponent - P + decimal_digits.\n"); }
+    | 'P' '-' decimal_digits                        { printf("hex_exponent - P - decimal_digits.\n"); }
     ;
 
 imaginary_lit :
-    decimal_digits "i"                  { printf("imaginary_lit - decimal_digits\n"); }
-    | int_lit "i"                       { printf("imaginary_lit - int_lit\n"); }
-    | float_lit "i"                     { printf("imaginary_lit - float_lit\n"); }
+    decimal_digits 'i'                  { printf("imaginary_lit - decimal_digits\n"); }
+    | int_lit 'i'                       { printf("imaginary_lit - int_lit\n"); }
+    | float_lit 'i'                     { printf("imaginary_lit - float_lit\n"); }
     ;
 
 rune_lit :
-    "'" '(' unicode_value               { printf("rune_lit - unicode_value\n"); }
-    | byte_value ')' "'"                { printf("rune_lit - byte_value\n"); }
+    '\'' unicode_value '\''             { printf("rune_lit - ' unicode_value '.\n"); }
+    | '\'' byte_value '\''              { printf("rune_lit - ' byte_value '.\n"); }
     ;
-
+    
 unicode_value :
     little_u_value                      { printf("unicode_value - little_u_value\n"); }
     | big_u_value                       { printf("unicode_value - big_u_value\n"); }
