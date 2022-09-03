@@ -22,7 +22,6 @@ BOOL_CONST      "true"|"false"
 NIL             "nil"
 
 %%
-
 "package"                      { /*printf("package");*/         return PACKAGE; }
 "interface"                    { /*printf("interface");*/       return INTERFACE; }
 "map"                          { /*printf("map");*/             return MAP; }
@@ -53,12 +52,13 @@ NIL             "nil"
 {BOOL_CONST}                    { /*printf("true");*/           return BOOL_CONST; } 
 {NIL}                           { /*printf("nil");*/            return NIL; }
 
-\"([^\\\n\"]|(\\.))*\"          { /*printf("STRING");*/         return STRING; }
+\"(\\.|[^"\\])*\"               { /*printf("STRING");*/         return STRING; }
 [a-zA-Z][a-zA-Z0-9_]*           { /*printf("IDENTIFIER");*/     return IDENTIFIER; }
 {DIGIT}		                    { /*printf("%c", *yytext);*/    return DIGIT; };
 [\t ]                           { /*printf("%c", *yytext);*/ }
 [\n]                            { /*printf("\n");*/ }
 
+[\[\]\(\)\{\}]                  { /*printf("Founded %c.\n", *yytext);*/ return *yytext; }
 [^a-zA-Z0-9_]                   { /*printf("Unexpected character '%c'", *yytext);*/ return *yytext; };
 
 %%

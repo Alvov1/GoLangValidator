@@ -1,8 +1,30 @@
-func (args Arguments) Bool(index int) bool {
-	var s bool
-	var ok bool
-	if s, ok = args.Get(index).(bool); !ok {
-		panic(fmt.Sprintf("assert: arguments: Bool(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
-	}
-	return s
+package main
+import "string"
+
+func main() {
+    nums := []int{2, 3, 4}
+    sum := 0
+    for _, num := range nums {
+        sum += num
+    }
+    fmt.Println("sum:", sum)
+
+    for i, num := range nums {
+        if num == 3 {
+            fmt.Println("index:", i)
+        }
+    }
+
+    kvs := map[string]string{"a": "apple", "b": "banana"}
+    for k, v := range kvs {
+        fmt.Printf("%s -> %s\n", k, v)
+    }
+
+    for k := range kvs {
+        fmt.Println("key:", k)
+    }
+
+    for i, c := range "go" {
+        fmt.Println(i, c)
+    }
 }
