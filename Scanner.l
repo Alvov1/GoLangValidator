@@ -20,6 +20,7 @@ RUNE                    \'( UNICODE_VALUE|BYTE)\'
 VAR_TYPE        "bool"|"byte"|"error"|"float32"|"float64"|"int"|"int8"|"int16"|"int32"|"int64"|"rune"|"string"|"uint"|"uint8"|"uint16"|"uint32"|"uint64"|"uintptr"|"complex64"|"complex128"
 BOOL_CONST      "true"|"false"
 NIL             "nil"
+CHANGE_ASSIGN   "+="|"-="|"*="|"/="|"%="|"<<="|">>="|"&="|"&^="
 
 %%
 "package"                      { /*printf("package");*/         return PACKAGE; }
@@ -62,24 +63,39 @@ NIL             "nil"
 "++"                           { /*printf("increment");*/       return INCREMENT; }
 "--"                           { /*printf("decrement");*/       return DECREMENT; }  
 
-{VAR_TYPE}                     { /*printf("type");*/
+{CHANGE_ASSIGN}                { /*printf("change+assign");*/   return CHANGE_ASSIGN; }
+
+{VAR_TYPE}                     {
+                                    yylval.digit = 0;
                                     yylval.buffer[0] = *yytext;
                                     yylval.buffer[1] = yytext[1];
                                     yylval.buffer[2] = yytext[2];
                                     yylval.buffer[3] = yytext[3];
-                                    yylval.buffer[4] = yytext[4]; return VAR_TYPE; }
+                                    yylval.buffer[4] = yytext[4]; 
+                                    return VAR_TYPE; }
                                     
 {BOOL_CONST}                    { /*printf("true");*/           return BOOL_CONST; } 
 {NIL}                           { /*printf("nil");*/            return NIL; }
 
 \"(\\.|[^"\\])*\"               { /*printf("STRING");*/         return STRING; }
-[a-zA-Z][a-zA-Z0-9_]*           { /*printf("IDENTIFIER: %c%c%c%c", *yytext, yytext[1], yytext[2], yytext[3]);*/
+[a-zA-Z_][a-zA-Z0-9_]*          {
+                                    yylval.digit = 0;
                                     yylval.buffer[0] = *yytext;
                                     yylval.buffer[1] = yytext[1];
                                     yylval.buffer[2] = yytext[2];
                                     yylval.buffer[3] = yytext[3];
-                                    yylval.buffer[4] = yytext[4]; return IDENTIFIER; }
-{DIGIT}		                    { /*printf("%c", *yytext);*/    yylval.digit = *yytext - '0'; return DIGIT; };
+                                    yylval.buffer[4] = yytext[4]; 
+                                    return IDENTIFIER; }
+                                    
+{DIGIT}		                    { 
+                                    yylval.buffer[0] = 0;
+                                    yylval.buffer[1] = 0;
+                                    yylval.buffer[2] = 0;
+                                    yylval.buffer[3] = 0;
+                                    yylval.buffer[4] = 0;
+                                    yylval.digit = *yytext - '0'; 
+                                     /*printf("Digit - %d.\n", yylval.digit);*/
+                                     return DIGIT; };
 [\t ]                           { /*printf("%c", *yytext);*/ }
 [\n]                            { /*printf("\n");*/ }
 
