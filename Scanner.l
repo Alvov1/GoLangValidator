@@ -47,8 +47,22 @@ NIL             "nil"
 "type"                         { /*printf("type");*/            return TYPE; }
 "var"                          { /*printf("var");*/             return VAR; }
 "<-"                           { /*printf("arrow left");*/      return ARROW_LEFT; }
+":="                           { /*printf("assign");*/          return ASSIGN; }
+"||"                           { /*printf("or");*/              return OR; }
+"&&"                           { /*printf("and");*/             return AND; }
+"=="                           { /*printf("equall");*/          return EQUALL; }
+"!="                           { /*printf("not equall");*/      return NOT_EQUALL; }
+">="                           { /*printf("greater equall");*/  return GREATER_EQUALL; }
+"<="                           { /*printf("less equall");*/     return LESS_EQUALL; }
+"<<"                           { /*printf("shift left");*/      return SHIFT_LEFT; }
+">>"                           { /*printf("shift right");*/     return SHIFT_RIGHT; }
+"&^"                           { /*printf("and xor");*/         return AND_XOR; }
+"..."                          { /*printf("multidot");*/        return MULTIDOT; }
 
-{VAR_TYPE}                      { /*printf("type");*/
+"++"                           { /*printf("increment");*/       return INCREMENT; }
+"--"                           { /*printf("decrement");*/       return DECREMENT; }  
+
+{VAR_TYPE}                     { /*printf("type");*/
                                     yylval.buffer[0] = *yytext;
                                     yylval.buffer[1] = yytext[1];
                                     yylval.buffer[2] = yytext[2];
@@ -65,11 +79,11 @@ NIL             "nil"
                                     yylval.buffer[2] = yytext[2];
                                     yylval.buffer[3] = yytext[3];
                                     yylval.buffer[4] = yytext[4]; return IDENTIFIER; }
-{DIGIT}		                    { /*printf("%c", *yytext);*/    return DIGIT; };
+{DIGIT}		                    { /*printf("%c", *yytext);*/    yylval.digit = *yytext - '0'; return DIGIT; };
 [\t ]                           { /*printf("%c", *yytext);*/ }
 [\n]                            { /*printf("\n");*/ }
 
 [\[\]\(\)\{\}]                  { /*printf("Founded %c.\n", *yytext);*/ return *yytext; }
-[^a-zA-Z0-9_]                   { /*printf("Unexpected character '%c'", *yytext);*/ return *yytext; };
+[^a-zA-Z0-9_]                   { printf("\nUnexpected character '%c'.\n\n", *yytext); return *yytext; };
 
 %%
