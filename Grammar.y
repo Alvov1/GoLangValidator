@@ -30,7 +30,7 @@
 %%
 
 SourceFile :
-    PackageClause ImportDecls TopLevelDecls         { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  SourceFile - PackageClause ImportDecls TopLevelDecls.\n"); exit(0); }
+    PackageClause ';' ImportDecls TopLevelDecls         { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  SourceFile - PackageClause ImportDecls TopLevelDecls.\n"); exit(0); }
     ;
     
 PackageClause : 
@@ -42,8 +42,7 @@ PackageName :
 	;
 	
 ImportDecls :
-    ImportDecl					    { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  ImportDecls - ImportDecl.\n"); }
-    | ImportDecls ImportDecl                        { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  ImportDecls - ImportDecls ImportDecl.\n"); }
+    | ImportDecls ImportDecl ';'                        { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  ImportDecls - ImportDecls ImportDecl.\n"); }
     ;
     
 ImportDecl :
@@ -52,7 +51,7 @@ ImportDecl :
     ;
     
 ImportSpecs :
-    | ImportSpecs ImportSpec                        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ImportSpecs - ImportSpecsImportSpec.\n"); }
+    | ImportSpecs ImportSpec ';'                       { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ImportSpecs - ImportSpecsImportSpec.\n"); }
     ;
 
 ImportSpec :
@@ -71,7 +70,7 @@ VarDecl :
 	;
 	
 VarSpecs :
-    | VarSpecs VarSpec                              { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpecs - VarSpecs VarSpec.\n"); }
+    | VarSpecs VarSpec ';'                          { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpecs - VarSpecs VarSpec.\n"); }
     ;
     
 VarSpec :
@@ -322,7 +321,7 @@ StructType :
 	;
 	
 FieldDecls :
-    | FieldDecls FieldDecl              			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecls - FieldDecls FieldDecl.\n"); }
+    | FieldDecls  FieldDecl ';'             			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecls - FieldDecls FieldDecl.\n"); }
     ;
     
 FieldDecl :
@@ -356,7 +355,7 @@ InterfaceType :
     ;
 
 InterfaceElems :
-    | InterfaceElems InterfaceElem                  		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  InterfaceElems - InterfaceElems InterfaceElem.\n"); }
+    | InterfaceElems InterfaceElem ';'                 		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  InterfaceElems - InterfaceElems InterfaceElem.\n"); }
     ;
     
 InterfaceElem :
@@ -575,8 +574,7 @@ Block :
 	;
 	
 StatementLists :
-    | StatementLists StatementList      			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementLists - StatementLists StatementList.\n"); }
-    | StatementLists ';' StatementList				{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementLists - StatementLists ; StatementList.\n"); }
+    | StatementLists StatementList ';'				{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementLists - StatementLists ; StatementList.\n"); }
     ;
     
 StatementList :
@@ -643,7 +641,7 @@ SimpleStmt :
     ;
     
 TypeSwitchStmt :
-    SWITCH TypeSwitchGuard '{' TypeCaseClauses                          { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeSwitchStmt - switch TypeSwitchGuard { TypeCaseClause }.\n"); }
+    SWITCH TypeSwitchGuard '{' TypeCaseClauses '}'                          { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeSwitchStmt - switch TypeSwitchGuard { TypeCaseClause }.\n"); }
     | SWITCH SimpleStmt ';' TypeSwitchGuard '{' TypeCaseClauses '}'     { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeSwitchStmt - switch SimpleStmt ; TypeSwitchGuard { TypeCaseClauses }.\n"); }
     ;
 
@@ -672,7 +670,7 @@ Declaration :
     ;
 
 TopLevelDecls :
-    | TopLevelDecls TopLevelDecl        			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  TopLevelDecls - TopLevelDecls TopLevelDecl.\n"); }
+    | TopLevelDecls TopLevelDecl ';'        			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  TopLevelDecls - TopLevelDecls TopLevelDecl.\n"); }
     ;
 
 TopLevelDecl :
@@ -687,7 +685,7 @@ ConstDecl :
     ;
 
 ConstSpecs :
-    | ConstSpecs ConstSpec                              	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ConstSpecs - ConstSpecs ConstSpec.\n"); }
+    | ConstSpecs ConstSpec ';'                             	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ConstSpecs - ConstSpecs ConstSpec.\n"); }
     ;
 
 ConstSpec :
@@ -702,7 +700,7 @@ TypeDecl :
     ;
     
 TypeSpecs :
-    | TypeSpecs TypeSpec                                        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeSpecs - TypeSpecs TypeSpec.\n"); }
+    | TypeSpecs TypeSpec ';'                                       { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeSpecs - TypeSpecs TypeSpec.\n"); }
     ;
     
 TypeSpec :
@@ -811,11 +809,11 @@ FallthroughStmt :
 
 IfStmt :
     IF Expression Block                                         { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block.\n"); }
-    | IF SimpleStmt Expression Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block.\n"); }
+    | IF SimpleStmt ';' Expression Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block.\n"); }
     | IF Expression Block ELSE IfStmt                           { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block else IfStmt.\n"); }
-    | IF SimpleStmt Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else IfStmt.\n"); }
+    | IF SimpleStmt ';' Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else IfStmt.\n"); }
     | IF Expression Block ELSE Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block else Block.\n"); }
-    | IF SimpleStmt Expression Block ELSE Block                 { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else Block.\n"); }
+    | IF SimpleStmt ';' Expression Block ELSE Block                 { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else Block.\n"); }
     ;
 
 SwitchStmt :
@@ -825,9 +823,9 @@ SwitchStmt :
 
 ExprSwitchStmt :
     SWITCH '{' ExprCaseClauses '}'                              { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch { ExprCaseClauses }.\n"); }
-    | SWITCH SimpleStmt '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch SimpleStmt { ExprCaseClauses }.\n"); }
+    | SWITCH SimpleStmt ';' '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch SimpleStmt { ExprCaseClauses }.\n"); }
     | SWITCH Expression '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch Expression { ExprCaseClauses }.\n"); }
-    | SWITCH SimpleStmt Expression '{' ExprCaseClauses '}'      { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch SimpleStmt Expression { ExprCaseClauses }.\n"); }
+    | SWITCH SimpleStmt ';' Expression '{' ExprCaseClauses '}'      { if (priority < IMPORTANT_OUTPUT) printf("[     ]  ExprSwitchStmt - switch SimpleStmt Expression { ExprCaseClauses }.\n"); }
     ;
 
 ExprCaseClauses :
