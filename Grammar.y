@@ -19,13 +19,19 @@
 	char buffer[5 + 1];
 }
 
-%token IDENTIFIER DIGIT LETTER VAR_TYPE BOOL_CONST NIL PACKAGE 
+%token IDENTIFIER DIGIT BOOL_VALUE NIL PACKAGE 
 %token GOTO FALLTHROUGH DEFER CHAN IMPORT FUNC BREAK CASE CONST
 %token CONTINUE DEFAULT ELSE FOR GO IF RANGE RETURN STRUCT 
 %token HEX_BYTE LITTLE_U BIG_U ESCAPED CHAR SELECT OCT HEX OCT_BYTE
 %token ASSIGN OR AND EQUALL NOT_EQUALL LESS_EQUALL GREATER_EQUALL 
 %token SHIFT_LEFT SHIFT_RIGHT AND_XOR MULTIDOT INCREMENT DECREMENT
 %token SWITCH TYPE VAR STRING ARROW_LEFT INTERFACE MAP CHANGE_ASSIGN
+
+%left '+' '-' '*' '/' '%' '&' '|' '^'
+%right '=' '!'
+%left AND OR EQUALL NOT_EQUALL LESS_EQUALL GREATER_EQUALL ';' ':' INCREMENT DECREMENT
+%left '>' '<' '(' ')' '{' '}' '[' ']' ',' '.'
+
 
 %%
 
@@ -76,6 +82,7 @@ VarSpecs :
 VarSpec :
     IdentifierList Type                             { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList Type.\n"); }
     | IdentifierList Type '=' ExpressionList        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList Type = ExpressionList.\n"); }
+    | IdentifierList Type 			    { if (priority < IMPORTANT_OUTPUT) printf("[     ] 	VarSpec: IdentifierList Type.\n"); }
     | IdentifierList '=' ExpressionList             { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList = ExpressionList.\n"); }
     ;
 	
@@ -111,7 +118,7 @@ binary_op :
 rel_op :
 	EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - ==.\n"); }
 	| NOT_EQUALL					{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - !=.\n"); }
-	| "<"							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - <.\n"); }
+	| '<'							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - <.\n"); }
 	| LESS_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - <=.\n"); }
 	| '>'							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - >.\n"); }
 	| GREATER_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Relativeness_operator - >=.\n"); }
@@ -160,8 +167,8 @@ Selector :
 	;
 
 Index :
-    | Expression						{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Index - Expression.\n"); }
-	;
+    '[' Expression ']'						{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Index - Expression.\n"); }
+    ;
 	
 Slice :
     '[' ':' ']'                                 		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Slice - [ : ].\n"); }
@@ -267,8 +274,7 @@ Element :
 	;
 
 Type :
-    VAR_TYPE                            			{ if (priority < IMPORTANT_OUTPUT) printf("[%s]  Type - VAR_TYPE.\n", yylval.buffer); }
-    | TypeName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Type - TypeName.\n"); }
+    	TypeName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Type - TypeName.\n"); }
 	| TypeName TypeArgs        	        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Type - Typename TypeArgs.\n"); }
 	| TypeLit			                	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Type - TypeLit.\n"); }
 	| '(' Type ')'			            		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Type - ( Type ).\n"); }
@@ -280,7 +286,7 @@ TypeName :
 	;
 
 TypeArgs :
-    '[' TypeList ']'                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeArgs - [ TypeList ].\n"); }
+    	'[' TypeList ']'                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeArgs - [ TypeList ].\n"); }
 	'[' TypeList ',' ']' 	    				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeArgs - [ TypeList , ].\n"); }
 	;
 	
@@ -321,11 +327,11 @@ StructType :
 	;
 	
 FieldDecls :
-    | FieldDecls  FieldDecl ';'             			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecls - FieldDecls FieldDecl.\n"); }
-    ;
+    	| FieldDecls  FieldDecl ';'             			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecls - FieldDecls FieldDecl.\n"); }
+    	;
     
 FieldDecl :
-    IdentifierList Type                 			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecl - IdentifierList Type.\n"); }
+    	IdentifierList Type                 			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecl - IdentifierList Type.\n"); }
 	| IdentifierList Type Tag     	    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecl - IdentifierList Type Tag.\n"); }
 	| EmbeddedField                     			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecl - EmbeddedField.\n"); }
 	| EmbeddedField Tag     				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  FieldDecl - EmbeddedField Tag.\n"); }
@@ -570,16 +576,11 @@ escaped_char :
     ;
     
 Block :
-	'{' StatementLists '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  Block - { StatementLists }.\n"); }
+	'{' StatementList '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  Block - { StatementList }.\n"); }
 	;
-	
-StatementLists :
-    | StatementLists StatementList ';'				{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementLists - StatementLists ; StatementList.\n"); }
-    ;
     
 StatementList :
-    Statement                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementList - Statement.\n"); }
-    | StatementList Statement           			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementList - StatementList Statement.\n"); }
+    | StatementList Statement ';'          			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  StatementList - StatementList Statement ;.\n"); }
     ;
 
 Statement :
