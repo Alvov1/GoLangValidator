@@ -18,8 +18,9 @@ UNICODE_VALUE           UNICODE_CHAR | LITTLE_U | BIG_U | ESCAPED_CHAR
 VARIABLE_TYPE   "bool"|"byte"|"error"|"float32"|"float64"|"int"|"int8"|"int16"|"int32"|"int64"|"rune"|"string"|"uint"|"uint8"|"uint16"|"uint32"|"uint64"|"uintptr"|"complex64"|"complex128"
 BOOL_VALUE      "true"|"false"
 NIL             "nil"
-CHANGE_ASSIGN   "+="|"-="|"*="|"/="|"%="|"<<="|">>="|"&="|"&^="|"="
 PREDEFINED_FUNCTION = "append"|"cap"|"close"|"complex"|"copy"|"delete"|"imag"|"len"|"make"|"new"|"panic"|"print"|"println"|"real"|"recover"
+
+int checkForSemicolons(int token);
 
 %%
 \"(\\.|[^"\\])*\"              { /*printf("STRING");*/          return STRING; }
@@ -64,7 +65,6 @@ PREDEFINED_FUNCTION = "append"|"cap"|"close"|"complex"|"copy"|"delete"|"imag"|"l
 "++"                           { /*printf("increment");*/       return INCREMENT; }
 "--"                           { /*printf("decrement");*/       return DECREMENT; }  
 
-{CHANGE_ASSIGN}                { /*printf("change+assign");*/   return CHANGE_ASSIGN; }
 {VARIABLE_TYPE}                {
                                     yylval.digit = 0;
                                     yylval.buffer[0] = *yytext;
@@ -127,3 +127,21 @@ PREDEFINED_FUNCTION             {
 [^a-zA-Z0-9_]                   { /*printf("\nUnexpected character '%c'.\n\n", *yytext);*/ return *yytext; };
 
 %%
+int insert = 0;
+
+int checkForSemicolons(int token) {
+    /*if(insert && 
+        (token == IDENTIFIER || token == STRING || token == BREAK ||
+        token == INTEGER || token == FLOAT || token == IMAGINARY || 
+        token == CONTINUE || token == FALLTHROUGH || token == RETURN)) {
+        unput('\n');
+        insert = 0;
+        return ';';
+    } else {
+        insert = (token == IDENTIFIER || token == STRING || token == BREAK ||
+                    token == INTEGER || token == FLOAT || token == IMAGINARY || 
+                    token == CONTINUE || token == FALLTHROUGH || token == RETURN)
+        return token;
+    }*/
+    return token;
+}

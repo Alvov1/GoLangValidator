@@ -25,7 +25,7 @@
 %token HEX_BYTE LITTLE_U BIG_U ESCAPED CHAR SELECT OCT HEX OCT_BYTE
 %token ASSIGN OR AND EQUALL NOT_EQUALL LESS_EQUALL GREATER_EQUALL 
 %token SHIFT_LEFT SHIFT_RIGHT AND_XOR MULTIDOT INCREMENT DECREMENT
-%token SWITCH TYPE VAR STRING ARROW_LEFT INTERFACE MAP CHANGE_ASSIGN
+%token SWITCH TYPE VAR STRING ARROW_LEFT INTERFACE MAP
 
 %left '+' '-' '*' '/' '%' '&' '|' '^'
 %right '=' '!'
@@ -71,8 +71,8 @@ ImportPath :
     ;
 
 VarDecl :
-	VAR VarSpec				    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarDecl - VAR VarSpec.\n"); exit(0); }
-	| VAR '(' VarSpecs ')'	                    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarDecl - VAR ( VarSpec ; ).\n"); exit(0); }
+	VAR VarSpec				    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarDecl - VAR VarSpec.\n"); }
+	| VAR '(' VarSpecs ')'	                    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarDecl - VAR ( VarSpec ; ).\n"); }
 	;
 	
 VarSpecs :
@@ -82,7 +82,6 @@ VarSpecs :
 VarSpec :
     IdentifierList Type                             { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList Type.\n"); }
     | IdentifierList Type '=' ExpressionList        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList Type = ExpressionList.\n"); }
-    | IdentifierList Type 			    { if (priority < IMPORTANT_OUTPUT) printf("[     ] 	VarSpec: IdentifierList Type.\n"); }
     | IdentifierList '=' ExpressionList             { if (priority < IMPORTANT_OUTPUT) printf("[     ]  VarSpec: IdentifierList = ExpressionList.\n"); }
     ;
 	
@@ -182,17 +181,19 @@ Slice :
 TypeAssertion :
 	'.' '(' Type ')'				    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  TypeAssertion - . ( Type ).\n"); }
 	;
-	
+
 Arguments :
     '(' ')'                                 			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( ).\n");  }
     | '(' ExpressionList ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( ExpressionList ).\n");  }
     | '(' ExpressionList MULTIDOT ')'                              { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( ExpressionList ... ).\n");  }
     | '(' ExpressionList ',' ')'                                { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( ExpressionList , ).\n");  }
     | '(' ExpressionList MULTIDOT ',' ')'                          { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( ExpressionList ... , ).\n");  }    
+    
     | '(' Type ')'                                  		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type ).\n");  }
     | '(' Type MULTIDOT ')'                                    	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type ... ).\n");  }
     | '(' Type ',' ')'                                  	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type , ).\n");  }
     | '(' Type MULTIDOT ',' ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type ... , ).\n");  }   
+    
     | '(' Type ',' ExpressionList ')'                           { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type , ExpressionList ).\n");  }
     | '(' Type ',' ExpressionList MULTIDOT ')'                     { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type , ExpressionList ... ).\n");  }
     | '(' Type ',' ExpressionList ',' ')'                       { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Arguments: ( Type ExpressionList , ).\n");  }
@@ -217,7 +218,7 @@ FunctionLit :
     ;
 	
 BasicLit :
-	int_lit					            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Int_lit.\n"); }
+	int_lit					            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - int_lit.\n"); }
 	| float_lit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Float_lit.\n"); }
 	| imaginary_lit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Imaginary_lit.\n"); }
 	| rune_lit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Rune_lit.\n"); }
@@ -631,6 +632,7 @@ RecvExpr :
     
 PostStmt :
     SimpleStmt                          			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  PostStmt - SimpleStmt.\n"); }
+    ;
     
 SimpleStmt :
     EmptyStmt                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[     ]  SimpleStmt - EmptyStmt\n"); }
@@ -774,7 +776,8 @@ Assignment :
     ;
 
 assign_op :
-	CHANGE_ASSIGN						{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  assign_op - Change + Assign.\n"); }
+	add_op '='						{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  assign_op - add_op =.\n"); }
+	| mul_op '=' 						{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  assign_op - mul_op =.\n"); }
 	;
 
 ShortVarDecl :
@@ -810,10 +813,13 @@ FallthroughStmt :
 
 IfStmt :
     IF Expression Block                                         { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block.\n"); }
+    
     | IF SimpleStmt ';' Expression Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block.\n"); }
+    
     | IF Expression Block ELSE IfStmt                           { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block else IfStmt.\n"); }
-    | IF SimpleStmt ';' Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else IfStmt.\n"); }
     | IF Expression Block ELSE Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if Expression Block else Block.\n"); }
+    
+    | IF SimpleStmt ';' Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else IfStmt.\n"); }
     | IF SimpleStmt ';' Expression Block ELSE Block                 { if (priority <= IMPORTANT_OUTPUT) printf("[     ]  IfStmt - if SimpleStmt Expression Block else Block.\n"); }
     ;
 
