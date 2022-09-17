@@ -19,7 +19,7 @@
 	char buffer[5 + 1];
 }
 
-%token IDENTIFIER DIGIT BOOL_VALUE NIL PACKAGE 
+%token IDENTIFIER DIGIT PACKAGE 
 %token GOTO FALLTHROUGH DEFER CHAN IMPORT FUNC BREAK CASE CONST
 %token CONTINUE DEFAULT ELSE FOR GO IF RANGE RETURN STRUCT 
 %token HEX_BYTE LITTLE_U BIG_U ESCAPED CHAR SELECT OCT HEX OCT_BYTE
@@ -260,15 +260,10 @@ KeyedElement :
     ;
  	
 Key :
- 	FieldName					        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Key - FieldName.\n"); } 
- 	| Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Key - Expression.\n"); } 
+ 	Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Key - Expression.\n"); } 
  	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Key - LiteralValue.\n"); }
  	;
- 	
-FieldName : 
-	IDENTIFIER					        { if (priority < IMPORTANT_OUTPUT) printf("[%s] FieldName - identifier.\n", yylval.buffer); }
-	;
-	
+
 Element : 
 	Expression					        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  Element - Expression.\n"); }
 	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  Element - LiteralValue.\n"); }
@@ -874,13 +869,13 @@ Condition :
     ;
 
 ForClause :
-               ';'           ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; ;.\n"); }
-    | InitStmt ';'           ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; ;.\n"); }
-    |          ';' Condition ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; Condition ;.\n"); }
-    |          ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; ; PostStmt.\n"); }
-    | InitStmt ';' Condition ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; Condition ;.\n"); }
-    |          ';' Condition ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; Condition ; PostStmt.\n"); }
-    | InitStmt ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; ; PostStmt.\n"); }
+//               ';'           ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; ;.\n"); }
+//    | InitStmt ';'           ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; ;.\n"); }
+//    |          ';' Condition ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; Condition ;.\n"); }
+//    |          ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; ; PostStmt.\n"); }
+//    | InitStmt ';' Condition ';'                            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; Condition ;.\n"); }
+//    |          ';' Condition ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - ; Condition ; PostStmt.\n"); }
+    InitStmt ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; ; PostStmt.\n"); }
     | InitStmt ';' Condition ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ForClause - InitStmt ; Condition ; PostStmt.\n"); }
     ;
 	

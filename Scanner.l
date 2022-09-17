@@ -2,9 +2,14 @@
 #include "Grammar.tab.h"
 %}
 
-DIGIT           [0-9]
+BINARY          [01]
 OCT             [0-7]
+DIGIT           [0-9]
 HEX             [0-9|a-f|A-F]
+
+INTEGER         [0|[1-9][0-9]*|0(b|B)BINARY*|0(o|O)OCT*|0(x|X)HEX*]
+FLOAT           [[+-]?([0-9]*[.])?[0-9]+]
+IMAGINARY       []
 
 UNICODE_CHAR            [^\n]
 OCT_BYTE                ["\\"]OCT{3}
