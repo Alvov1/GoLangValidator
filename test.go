@@ -1,6 +1,5 @@
-package main;
+package main
 import "string"
-
 func main() {
     nums := []int{2, 3, 4}
     sum := 0
@@ -9,9 +8,9 @@ func main() {
     }
     fmt.Println("sum:", sum)
 
-    for i, num := range nums {
+    for l, num := range nums {
         if num == 3 {
-            fmt.Println("index:", i)
+            fmt.Println("index:", l)
         }
     }
 
@@ -24,7 +23,7 @@ func main() {
         fmt.Println("key:", k)
     }
 
-    for i, c := range "go" {
-        fmt.Println(i, c)
+    for l, c := range "go" {
+        fmt.Println(l, c)
     }
 }

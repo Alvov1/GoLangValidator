@@ -1,5 +1,5 @@
 %{
-    #define FIELD 5
+	#define FIELD 5
 	#include <stdio.h>
 	#include <stdlib.h>
 	
@@ -11,15 +11,16 @@
 	#define IMPORTANT_OUTPUT 3
 	
 	unsigned priority = ALL_OUTPUT;
-	
+	extern FILE* lexOutput;
 %}
 
 %union {
+	#define bufferSize 100
 	int digit;
-	char buffer[5 + 1];
+	char buffer[bufferSize];
 }
 
-%token IDENTIFIER DIGIT PACKAGE 
+%token IDENTIFIER DIGIT PACKAGE INTEGER FLOAT IMAGINARY RUNE
 %token GOTO FALLTHROUGH DEFER CHAN IMPORT FUNC BREAK CASE CONST
 %token CONTINUE DEFAULT ELSE FOR GO IF RANGE RETURN STRUCT 
 %token HEX_BYTE LITTLE_U BIG_U ESCAPED CHAR SELECT OCT HEX OCT_BYTE
@@ -218,11 +219,11 @@ FunctionLit :
     ;
 	
 BasicLit :
-	int_lit					            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - int_lit.\n"); }
-	| float_lit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Float_lit.\n"); }
-	| imaginary_lit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Imaginary_lit.\n"); }
-	| rune_lit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - Rune_lit.\n"); }
-	| STRING				            	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  BasicLit - String_lit.\n"); }
+	INTEGER
+	| FLOAT
+	| IMAGINARY
+	| STRING
+	| RUNE
 	;
 	
 OperandName :
@@ -403,172 +404,6 @@ ChannelType :
     CHAN ElementType                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ChannelType - chan ElementType.\n"); }
     | CHAN ARROW_LEFT ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ChannelType - chan <- ElementType.\n"); }
     | ARROW_LEFT CHAN ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  ChannelType - <- chan ElementType.\n"); }
-    ;
-
-int_lit :
-    decimal_lit                         			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  int_lit - decimal_lit.\n"); }
-    | binary_lit                        			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  int_lit - binary_lit.\n"); }           
-    | octal_lit                         			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  int_lit - octal_lit.\n"); }
-    | hex_lit                           			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  int_lit - hex_lit.\n"); }
-    ;
-
-decimal_lit :
-    '0'                                 			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_lit - 0.\n"); }                      
-    | DIGIT                             			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_lit - digit.\n"); }
-    | DIGIT decimal_digits              			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_lit - digit decimal_digits.\n"); }                 
-    | DIGIT '_' decimal_digits          			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_lit - digit _ decimal_digits.\n"); }                         
-    ;
-
-binary_lit :
-    '0' 'b' binary_digits                   			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_lit - 0 b binary_digits.\n"); }
-    | '0' 'B' binary_digits                 			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_lit - 0 B binary_digits.\n"); }
-    | '0' 'b' '_' binary_digits                 		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_lit - 0 b _ binary_digits.\n"); }
-    | '0' 'B' '_' binary_digits                 		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_lit - 0 B _ binary_digits.\n"); }
-    ;
-
-octal_lit :
-    '0' 'o' octal_digits                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_lit - 0 o octal_digits.\n"); }
-    | '0' 'O' octal_digits                  			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_lit - 0 O octal_digits.\n"); }
-    | '0' 'o' '_' octal_digits                  		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_lit - 0 o _ octal_digits.\n"); }
-    | '0' 'O' '_' octal_digits                  		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_lit - 0 O _ octal_digits.\n"); }
-    ;
-
-hex_lit :
-    '0' 'x' hex_digits                  			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_lit - 0 x hex_digits"); }
-    | '0' 'X' hex_digits                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_lit - 0 X hex_digits"); }
-    | '0' 'x' '_' hex_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_lit - 0 x _ hex_digits"); }
-    | '0' 'X' '_' hex_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_lit - 0 X _ hex_digits"); }
-    ;
-
-decimal_digits :
-    decimal_digit                       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_digits - decimal_digit.\n"); }
-    | decimal_digits decimal_digit                      	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_digits - decimal_digits decimal_digit.\n"); }
-    | decimal_digits '_' decimal_digit                      	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_digits - decimal_digits _ decimal_digit.\n"); }
-    ;
-
-binary_digits :
-    binary_digit                       				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_digits - binary_digit.\n"); }
-    | binary_digits binary_digit                      		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_digits - binary_digits binary_digit.\n"); }
-    | binary_digits '_' binary_digit                      	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_digits - binary_digits _ binary_digit.\n"); }
-    ;
-
-octal_digits :
-    octal_digit                       				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_digits - octal_digit.\n"); }
-    | octal_digits octal_digit                      		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_digits - octal_digits octal_digit.\n"); }
-    | octal_digits '_' octal_digit                      	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_digits - octal_digits _ octal_digit.\n"); }
-    ;
-
-hex_digits :
-    hex_digit                       				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_digits - hex_digit.\n"); }
-    | hex_digits hex_digit                      		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_digits - hex_digits hex_digit.\n"); }
-    | hex_digits '_' hex_digit                      		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_digits - hex_digits _ hex_digit.\n"); }
-    ;
-
-decimal_digit :
-    DIGIT                           				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_digit - digit.\n"); }
-    ;
-
-binary_digit :
-    '0'                             				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_digit - 0\n"); }
-    | '1'                           				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  binary_digit - 1\n"); }
-    ;
- 
-octal_digit :
-    OCT                             				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_digit - oct\n"); }
-    ;
-
-hex_digit :
-    HEX                             				{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_digit - hex.\n"); }
-    ;
-
-float_lit :
-    decimal_float_lit                   			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  float_lit - decimal_float_lit\n"); }
-    | hex_float_lit                     			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  float_lit - hex_float_lit\n"); }
-    ;
-
-decimal_float_lit :
-    decimal_digits '.'                      			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - decimal_digits ..\n"); }
-    | decimal_digits '.' decimal_digits                     	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - decimal_digits . decimal_digits.\n"); }
-    | decimal_digits '.' decimal_exponent                       { if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - decimal_digits . decimal_exponent.\n"); }
-    | decimal_digits '.' decimal_digits decimal_exponent        { if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - decimal_digits . decimal_digits decimal_exponent.\n"); }
-    | decimal_digits decimal_exponent                       	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - decimal_digits decimal_exponent.\n"); }
-    | '.' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - . decimal_digits.\n"); }
-    | '.' decimal_digits decimal_exponent                       { if (priority < IMPORTANT_OUTPUT) printf("[     ]  decimal_float_lit - . decimal_digits decimal_exponent.\n"); }
-    ;
-
-decimal_exponent :
-    'e' decimal_digits                  			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'e' decimal_digits.\n"); }
-    | 'E' decimal_digits                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'E' decimal_digits.\n"); }
-    | 'e' '+' decimal_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'e' '+' decimal_digits.\n"); }
-    | 'e' '-' decimal_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'e' '-' decimal_digits.\n"); }
-    | 'E' '+' decimal_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'E' '+' decimal_digits.\n"); }
-    | 'E' '-' decimal_digits                    		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  deicmal_exponent - 'E' '-' decimal_digits.\n"); }
-    ;
-
-hex_float_lit :
-    '0' 'x' hex_mantissa hex_exponent       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_float_lit - '0' 'x' hex_mantissa hex_exponent.\n"); }
-    | '0' 'X' hex_mantissa hex_exponent     			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_float_lit - '0' 'X' hex_mantissa hex_exponent.\n"); }
-    ;
-
-hex_mantissa :
-    hex_digits '.'                      			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - hex_digits ..\n"); }
-    | '_' hex_digits '.'                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - _ hex_digits ..\n"); }
-    | hex_digits '.' hex_digits                     		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - hex_digits . hex_digits.\n"); }
-    | '_' hex_digits '.' hex_digits                     	{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - _ hex_digits . hex_digits.\n"); }
-    | hex_digits                        			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - hex_digits.\n"); }
-    | '_' hex_digits                        			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - _ hex_digits.\n"); }
-    | '.' hex_digits                        			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_mantissa - . hex_digits.\n"); }
-    ;
-
-hex_exponent :
-    'p' decimal_digits                      			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - p decimal_digits.\n"); }
-    | 'P' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - P decimal_digits.\n"); }
-    | 'p' '+' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - p + decimal_digits.\n"); }
-    | 'p' '-' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - p - decimal_digits.\n"); }
-    | 'P' '+' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - P + decimal_digits.\n"); }
-    | 'P' '-' decimal_digits                        		{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_exponent - P - decimal_digits.\n"); }
-    ;
-
-imaginary_lit :
-    decimal_digits 'i'                  			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  imaginary_lit - decimal_digits\n"); }
-    | int_lit 'i'                       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  imaginary_lit - int_lit\n"); }
-    | float_lit 'i'                     			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  imaginary_lit - float_lit\n"); }
-    ;
-
-rune_lit :
-    '\'' unicode_value '\''             			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  rune_lit - ' unicode_value '.\n"); }
-    | '\'' byte_value '\''              			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  rune_lit - ' byte_value '.\n"); }
-    ;
-    
-unicode_value :
-    little_u_value                      			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  unicode_value - little_u_value\n"); }
-    | big_u_value                       			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  unicode_value - big_u_value\n"); }
-    | escaped_char                      			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  unicode_value - escaped_char\n"); }
-    ;
-    
-byte_value :
-    octal_byte_value                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  byte_value - octal_byte_value\n"); }
-    | hex_byte_value                    			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  byte_value - hex_byte_value\n"); }
-    ;
-
-octal_byte_value :
-    OCT_BYTE                            			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  octal_byte_value - oct_byte.\n"); }
-    ;
-
-hex_byte_value :
-    HEX_BYTE                            			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  hex_byte_value - hex_byte.\n"); }
-    ;
-
-little_u_value :
-    LITTLE_U                            			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  little_u_value - little_u.\n"); }
-    ;
-
-big_u_value :
-    BIG_U                               			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  big_u_value - big_u.\n"); }
-    ;
-
-escaped_char :
-    ESCAPED CHAR                        			{ if (priority < IMPORTANT_OUTPUT) printf("[     ]  escaped_char - escaped_char.\n"); }
     ;
     
 Block :
@@ -947,9 +782,14 @@ QualifiedIdent :
 %%
 
 int main() {
+	lexOutput = fopen("lexOutput.go", "w");
+	if(lexOutput == NULL) exit(0);
+
 	yylval.digit = 0;
     	yylval.buffer[FIELD] = 0;
 	yyparse();
+	
+	fclose(lexOutput);
 	return 0;
 }
 int yyerror(const char* s) {
