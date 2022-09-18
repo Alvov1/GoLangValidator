@@ -2,17 +2,19 @@
     #include "Grammar.tab.h"
     #define bufferSize 100
 
-    int check(int token);
-    void writeString(const char* value);    
-    void writeName(unsigned len);
-    void writeDigit();
+    int check(int token);   
+    void writeName();
     
     FILE* lexOutput = NULL;  
 %}
 %array
 %%
 
-\"[^"]*\"                       { fprintf(lexOutput, "\"string\""); /*printf("#### string.\n"); */ writeName(5); return check(STRING); }
+"//".*                                  { /* printf("Singleline comment.\n"); */ }
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]     { /* printf("Multiline comment.\n"); */}
+[/][*]                                  { printf("Unterminated comment"); exit(0); }
+
+\"[^"]*\"                       { fprintf(lexOutput, "\"string\""); /*printf("#### string.\n"); */ writeName(); return check(STRING); }
 
 "package"                       { fprintf(lexOutput, "package"); /* printf("#### package.\n");*/         return check(PACKAGE); }
 "interface"                     { fprintf(lexOutput, "interface"); /* printf("#### interface.\n");*/       return check(INTERFACE); }
@@ -46,56 +48,68 @@
 ">>"                            { fprintf(lexOutput, ">>"); /* printf("#### shift right.\n");*/     return check(SHIFT_RIGHT); }
 "&^"                            { fprintf(lexOutput, "&^"); /* printf("#### andxor.\n");*/         return check(AND_XOR); }
 "..."                           { fprintf(lexOutput, "..."); /* printf("#### multidot.\n");*/        return check(MULTIDOT); } 
-                          
-"nil"                           { fprintf(lexOutput, "NIL"); /*printf("#### nil.\n"); */ writeName(5); return check(IDENTIFIER); }                                 
-"true"                          { fprintf(lexOutput, "true"); /*printf("#### bool value.\n") */; writeName(5); return check(IDENTIFIER); }
-"false"                         { fprintf(lexOutput, "true"); /*printf("#### bool value.\n") */; writeName(5); return check(IDENTIFIER); }
-"append"                        { fprintf(lexOutput, "append"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"cap"                           { fprintf(lexOutput, "cap"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"close"                         { fprintf(lexOutput, "close"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"complex"                       { fprintf(lexOutput, "complex"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"copy"                          { fprintf(lexOutput, "copy"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"delete"                        { fprintf(lexOutput, "delete"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"imag"                          { fprintf(lexOutput, "imag"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"len"                           { fprintf(lexOutput, "len"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"make"                          { fprintf(lexOutput, "make"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"new"                           { fprintf(lexOutput, "new"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"panic"                         { fprintf(lexOutput, "panic"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"print"                         { fprintf(lexOutput, "print"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"println"                       { fprintf(lexOutput, "println"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"real"                          { fprintf(lexOutput, "real"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-"recover"                       { fprintf(lexOutput, "recover"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-bool                            { fprintf(lexOutput, "bool"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-byte                            { fprintf(lexOutput, "byte"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-error                           { fprintf(lexOutput, "error"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-float32                         { fprintf(lexOutput, "float32"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-float64                         { fprintf(lexOutput, "float64"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-int                             { fprintf(lexOutput, "int"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-int8                            { fprintf(lexOutput, "int8"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-int16                           { fprintf(lexOutput, "int16"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-int32                           { fprintf(lexOutput, "int32"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-int64                           { fprintf(lexOutput, "int64"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-rune                            { fprintf(lexOutput, "rune"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-string                          { fprintf(lexOutput, "string"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uint                            { fprintf(lexOutput, "uint"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uint8                           { fprintf(lexOutput, "uint8"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uint16                          { fprintf(lexOutput, "uint16"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uint32                          { fprintf(lexOutput, "uint32"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uint64                          { fprintf(lexOutput, "uint64"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-uintptr                         { fprintf(lexOutput, "uintptr"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-complex64                       { fprintf(lexOutput, "complex64"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-complex12                       { fprintf(lexOutput, "complex12"); /*printf("#### .\n"); */ writeName(5); return check(IDENTIFIER); }
-        
-"break"                         { fprintf(lexOutput, "break"); /*printf("#### break.\n"); */ writeString("break"); return check(BREAK); }                     
-"continue"                      { fprintf(lexOutput, "continue"); /*printf("#### cont.\n"); */ writeString("continue"); return check(CONTINUE); }
-"fallthrough"                   { fprintf(lexOutput, "fallthrough"); /*printf("#### fall.\n"); */ writeString("fallthrough"); return check(FALLTHROUGH); }
-"return"                        { fprintf(lexOutput, "return"); /*printf("#### ret.\n"); */ writeString("return"); return check(RETURN); }
-"++"                            { fprintf(lexOutput, "++"); /*printf("#### ++.\n"); */ writeString("++"); return check(INCREMENT); }
-"--"                            { fprintf(lexOutput, "--"); /*printf("#### --.\n"); */ writeString("--"); return check(DECREMENT); }
 
-[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "FLOAT"); /*printf("#### float.\n"); */ writeName(5); return check(FLOAT); }
-0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "INTEGER"); /*printf("#### int.\n"); */ writeString("int"); return check(INTEGER); }
-[a-zA-Z_][a-zA-Z0-9_\.]*        { fprintf(lexOutput, "identifier"); /*printf("#### int.\n"); */ writeString("int"); return check(IDENTIFIER); }
+"+="                            { fprintf(lexOutput, "+="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"-="                            { fprintf(lexOutput, "-="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"|="                            { fprintf(lexOutput, "|="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"^="                            { fprintf(lexOutput, "^="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"*="                            { fprintf(lexOutput, "*="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"/="                            { fprintf(lexOutput, "/="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"%="                            { fprintf(lexOutput, "%%="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"<<="                           { fprintf(lexOutput, "<<"); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+">>="                           { fprintf(lexOutput, ">>"); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"&="                            { fprintf(lexOutput, "&="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+"&^="                           { fprintf(lexOutput, "&^="); /* printf("#### .\n");*/ return check(ASSIGN_OP); }
+                     
+"nil"                           { fprintf(lexOutput, "nil"); /*printf("#### nil.\n"); */ writeName(); return check(IDENTIFIER); }                                 
+"true"                          { fprintf(lexOutput, "true"); /*printf("#### bool value.\n") */; writeName(); return check(IDENTIFIER); }
+"false"                         { fprintf(lexOutput, "true"); /*printf("#### bool value.\n") */; writeName(); return check(IDENTIFIER); }
+"append"                        { fprintf(lexOutput, "append"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"cap"                           { fprintf(lexOutput, "cap"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"close"                         { fprintf(lexOutput, "close"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"complex"                       { fprintf(lexOutput, "complex"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"copy"                          { fprintf(lexOutput, "copy"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"delete"                        { fprintf(lexOutput, "delete"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"imag"                          { fprintf(lexOutput, "imag"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"len"                           { fprintf(lexOutput, "len"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"make"                          { fprintf(lexOutput, "make"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"new"                           { fprintf(lexOutput, "new"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"panic"                         { fprintf(lexOutput, "panic"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"print"                         { fprintf(lexOutput, "print"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"println"                       { fprintf(lexOutput, "println"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"real"                          { fprintf(lexOutput, "real"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"recover"                       { fprintf(lexOutput, "recover"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"bool"                          { fprintf(lexOutput, "bool"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"byte"                          { fprintf(lexOutput, "byte"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"error"                         { fprintf(lexOutput, "error"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"float32"                       { fprintf(lexOutput, "float32"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"float64"                       { fprintf(lexOutput, "float64"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"int"                           { fprintf(lexOutput, "int"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"int8"                          { fprintf(lexOutput, "int8"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"int16"                         { fprintf(lexOutput, "int16"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"int32"                         { fprintf(lexOutput, "int32"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"int64"                         { fprintf(lexOutput, "int64"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"rune"                          { fprintf(lexOutput, "rune"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"string"                        { fprintf(lexOutput, "string"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uint"                          { fprintf(lexOutput, "uint"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uint8"                         { fprintf(lexOutput, "uint8"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uint16"                        { fprintf(lexOutput, "uint16"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uint32"                        { fprintf(lexOutput, "uint32"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uint64"                        { fprintf(lexOutput, "uint64"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"uintptr"                       { fprintf(lexOutput, "uintptr"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"complex64"                     { fprintf(lexOutput, "complex64"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+"complex12"                     { fprintf(lexOutput, "complex12"); /*printf("#### .\n"); */ writeName(); return check(IDENTIFIER); }
+        
+"break"                         { fprintf(lexOutput, "break"); /*printf("#### break.\n"); */ writeName(); return check(BREAK); }                     
+"continue"                      { fprintf(lexOutput, "continue"); /*printf("#### cont.\n"); */ writeName(); return check(CONTINUE); }
+"fallthrough"                   { fprintf(lexOutput, "fallthrough"); /*printf("#### fall.\n"); */ writeName(); return check(FALLTHROUGH); }
+"return"                        { fprintf(lexOutput, "return"); /*printf("#### ret.\n"); */ writeName(); return check(RETURN); }
+"++"                            { fprintf(lexOutput, "++"); /*printf("#### ++.\n"); */ writeName(); return check(INCREMENT); }
+"--"                            { fprintf(lexOutput, "--"); /*printf("#### --.\n"); */ writeName(); return check(DECREMENT); }
+
+[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
+0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
+[a-zA-Z_][a-zA-Z0-9_\.]*        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IDENTIFIER); }
 
 "["                             { fprintf(lexOutput, "["); /*printf("Founded %c.\n", *yytext);*/ return check('['); }
 "("                             { fprintf(lexOutput, "("); /*printf("Founded %c.\n", *yytext);*/ return check('('); }
@@ -146,22 +160,10 @@ int check(int token) {
     return token;
 }
 
-void writeString(const char* value) {
-    yylval.digit = 0;
-    const unsigned len = strlen(value);
-    const unsigned writeLen = bufferSize > len ? len : bufferSize;
-    strncpy(yylval.buffer, value, writeLen);
-    yylval.buffer[writeLen - 1] = 0;
-}
-
 void writeName(unsigned len) {
-    yylval.digit = 0;
+    /*yylval.digit = 0;
     const int writeLen = bufferSize > len ? len : bufferSize;
     strncpy(yylval.buffer, yytext, writeLen);
-    yylval.buffer[writeLen - 1] = 0;
-}
-
-void writeDigit() {
-    memset(yylval.buffer, 0, bufferSize);
-    yylval.digit = *yytext - '0'; 
+    yylval.buffer[writeLen - 1] = 0;*/
+    sprintf(yylval.buffer, "%s", yytext);
 }

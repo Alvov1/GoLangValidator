@@ -2,28 +2,12 @@ package main
 import "string"
 func main() {
     nums := []int{2, 3, 4}
-    sum := 0
-    for _, num := range nums {
-        sum += num
-    }
-    fmt.Println("sum:", sum)
-
-    for l, num := range nums {
-        if num == 3 {
-            fmt.Println("index:", l)
+    if len(p.Env) == 0 {
+        err := os.Symlink(filepath.Join(p.Dir, base), filepath.Join(p.Dir, tmp))
+        if err != nil {
+            return "", err
         }
-    }
-
-    kvs := map[string]string{"a": "apple", "b": "banana"}
-    for k, v := range kvs {
-        fmt.Printf("%s -> %s\n", k, v)
-    }
-
-    for k := range kvs {
-        fmt.Println("key:", k)
-    }
-
-    for l, c := range "go" {
-        fmt.Println(l, c)
+        p.tempAppYaml = tmp
+        return p.tempAppYaml, nil
     }
 }
