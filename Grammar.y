@@ -29,26 +29,26 @@
 %token SHIFT_LEFT SHIFT_RIGHT AND_XOR MULTIDOT INCREMENT DECREMENT
 %token SWITCH TYPE VAR STRING ARROW_LEFT INTERFACE MAP
 
-%left '-' '+' '%'
-%left '*' '/' '|'
-%left '^' '&'
-%right '.'
+%right IDENTIFIER
+%left '+' '-' '*' '/' '%' '&' '|' '^'
+%right '=' '!'
+%left AND OR EQUALL NOT_EQUALL LESS_EQUALL GREATER_EQUALL ';' ':' INCREMENT DECREMENT
+%left '>' '<' '(' ')' '{' '}' '[' ']' ',' '.'
 
 %start SourceFile
 
 %%
 
 Type :
-	TypeOperandName						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
-	| TypeOperandName TypeArgs				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName TypeArgs.\n", fileHeight); }
+    	TypeOperandName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName TypeArgs        	        		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - Typename TypeArgs.\n", fileHeight); }
 	| TypeLit			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeLit.\n", fileHeight); }
 	| '(' Type ')'			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - ( Type ).\n", fileHeight); }
 	;
 
 TypeOperandName :
 	IDENTIFIER 			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeOperandName - identifier.\n", fileHeight, yylval.buffer); }
-	| IDENTIFIER Selector
-//	| IDENTIFIER '.' IDENTIFIER				{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeOperandName - identifier . identifier.\n", fileHeight, yylval.buffer); }
+	| QualifiedIdent 		            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeOperandName - QualifiedIdent.\n", fileHeight); }
 	;
 
 TypeArgs :
@@ -102,7 +102,7 @@ FieldDecl :
 	| EmbeddedField                     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - EmbeddedField.\n", fileHeight); }
 	| EmbeddedField Tag     				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - EmbeddedField Tag.\n", fileHeight); }
 	;
-			
+	
 EmbeddedField :
 	TypeOperandName                        				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - TypeOperandName.\n", fileHeight); }
 	| '*' TypeOperandName                      			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - * TypeOperandName.\n", fileHeight); }
@@ -346,8 +346,8 @@ Receiver :
     
 Operand :
 	Literal						        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - Literal.\n", fileHeight); }
-//	| TypeOperandName                       		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName.\n", fileHeight); }
-//	| TypeOperandName TypeArgs		        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName TypeArgs.\n", fileHeight); } 
+	| TypeOperandName                       		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName TypeArgs		        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName TypeArgs.\n", fileHeight); } 
 	| '(' Expression ')'					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - ( Expression ).\n", fileHeight); }
 	;
 	
@@ -363,6 +363,10 @@ BasicLit :
 	| IMAGINARY						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Imaginary.\n", fileHeight, yylval.buffer); } 
 	| RUNE							{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Rune.\n", fileHeight, yylval.buffer); } 
 	| STRING						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - String.\n", fileHeight, yylval.buffer); } 
+	;
+
+QualifiedIdent :
+	PackageName '.' IDENTIFIER	                        { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] QualifiedIdent - PackageName . identifier.\n", fileHeight, yylval.buffer); }
 	;
 	
 CompositeLit :
@@ -413,26 +417,14 @@ FunctionLit :
 PrimaryExpr :
 	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
 	| Conversion						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Conversion.\n", fileHeight); }
-//	| Type '.' IDENTIFIER
-	| Type Selector
-//	| MethodExpr						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - MethodExpr.\n", fileHeight); }
+	| Type '.' IDENTIFIER					{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]    PrimaryExpr - Type . IDENTIFIER.\n", fileHeight, yylval.buffer); }
+	//| IDENTIFIER '.' IDENTIFIER				{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]    PrimaryExpr - IDENTIFIER . IDENTIFIER.\n", fileHeight, yylval.buffer); }
 	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
 	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
 	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
 	| PrimaryExpr TypeAssertion				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr TypeAssertion.\n", fileHeight); }
 	| PrimaryExpr Arguments					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Arguments.\n", fileHeight); }
 	;
-	
-MethodExpr :
-	Type '.' IDENTIFIER					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    MethodExpr - Type . Identifier.\n", fileHeight); }
-//	IDENTIFIER '.' IDENTIFIER						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
-//	| IDENTIFIER TypeArgs '.' IDENTIFIER				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName TypeArgs.\n", fileHeight); }
-//	| IDENTIFIER '.' IDENTIFIER '.' IDENTIFIER						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
-//	| IDENTIFIER '.' IDENTIFIER TypeArgs '.' IDENTIFIER				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName TypeArgs.\n", fileHeight); }
-//	| TypeLit '.' IDENTIFIER			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeLit.\n", fileHeight); }
-//	| '(' Type ')' '.' IDENTIFIER		            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - ( Type ).\n", fileHeight); }
-	;
-	
 	
 Selector :
 	'.' IDENTIFIER						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] Selector - . identifier.\n", fileHeight, yylval.buffer);}
@@ -796,7 +788,7 @@ int main() {
 	return 0;
 }
 int yyerror(const char* s) {
-	printf(" ---------------- Error: %s in line %d.\n\n", s, fileHeight);
+	if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Error: %s\n", fileHeight, s);
 	return 1;
 }
 int yywrap() {
