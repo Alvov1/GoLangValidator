@@ -5,7 +5,8 @@
     int check(int token);   
     void writeName();
     
-    FILE* lexOutput = NULL;  
+    FILE* lexOutput = NULL;
+    unsigned fileHeight = 0;  
 %}
 %array
 %%
@@ -109,7 +110,7 @@
 
 [0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
 0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
-[a-zA-Z_][a-zA-Z0-9_\.]*        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IDENTIFIER); }
+[a-zA-Z_][a-zA-Z0-9_]*        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IDENTIFIER); }
 
 "["                             { fprintf(lexOutput, "["); /*printf("Founded %c.\n", *yytext);*/ return check('['); }
 "("                             { fprintf(lexOutput, "("); /*printf("Founded %c.\n", *yytext);*/ return check('('); }
@@ -122,7 +123,7 @@
 ";"                             { fprintf(lexOutput, ";"); return check(';'); }   
 
 "\r"                            {}
-"\n"                            { int token = check('\n'); if(token != '\n') return token; }
+"\n"                            { fileHeight++; int token = check('\n'); if(token != '\n') return token; }
                                          
 "\t"                            { fprintf(lexOutput, "\t"); /* printf("%c", *yytext); */ }
 " "                             { fprintf(lexOutput, " "); /* printf("%c", *yytext); */ }

@@ -12,6 +12,7 @@
 	
 	unsigned priority = ALL_OUTPUT;
 	extern FILE* lexOutput;
+	extern unsigned fileHeight;
 %}
 
 %union {
@@ -34,773 +35,743 @@
 %left AND OR EQUALL NOT_EQUALL LESS_EQUALL GREATER_EQUALL ';' ':' INCREMENT DECREMENT
 %left '>' '<' '(' ')' '{' '}' '[' ']' ',' '.'
 
+%start SourceFile
 
 %%
 
-SourceFile :
-    PackageClause ';' ImportDecls TopLevelDecls         { if (priority <= IMPORTANT_OUTPUT) printf("[]  SourceFile - PackageClause ImportDecls TopLevelDecls.\n"); exit(0); }
-    ;
-    
-PackageClause : 
-    PACKAGE PackageName                             { if (priority <= IMPORTANT_OUTPUT) printf("[]  PackageClause - package PackageName.\n"); }
-    ;
-    
-PackageName :
-	IDENTIFIER			            { if (priority <= IMPORTANT_OUTPUT) printf("[%s] PackageName - identifier.\n", yylval.buffer); }
-	;
-	
-ImportDecls :
-    | ImportDecls ImportDecl ';'                        { if (priority <= IMPORTANT_OUTPUT) printf("[]  ImportDecls - ImportDecls ImportDecl.\n"); }
-    ;
-    
-ImportDecl :
-    IMPORT ImportSpec                               { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportDecl - import ImportSpec.\n"); }
-    | IMPORT '(' ImportSpecs ')'                    { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportDecl - import ( ImportSpec ).\n"); }
-    ;
-    
-ImportSpecs :
-    | ImportSpecs ImportSpec ';'                       { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportSpecs - ImportSpecsImportSpec.\n"); }
-    ;
-
-ImportSpec :
-    ImportPath                                      { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportSpec - ImportPath.\n"); }
-    | '.' ImportPath                                { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportSpec - . ImportPath.\n"); }
-    | PackageName ImportPath                        { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportSpec - PackageName ImportPath.\n"); }
-    ;
-    
-ImportPath :
-    STRING                                          { if (priority < IMPORTANT_OUTPUT) printf("[]  ImportPath - string.\n"); }
-    ;
-
-VarDecl :
-	VAR VarSpec				    { if (priority < IMPORTANT_OUTPUT) printf("[]  VarDecl - VAR VarSpec.\n"); }
-	| VAR '(' VarSpecs ')'	                    { if (priority < IMPORTANT_OUTPUT) printf("[]  VarDecl - VAR ( VarSpec ; ).\n"); }
-	;
-	
-VarSpecs :
-    | VarSpecs VarSpec ';'                          { if (priority < IMPORTANT_OUTPUT) printf("[]  VarSpecs - VarSpecs VarSpec.\n"); }
-    ;
-    
-VarSpec :
-    IdentifierList Type                             { if (priority < IMPORTANT_OUTPUT) printf("[]  VarSpec: IdentifierList Type.\n"); }
-    | IdentifierList Type '=' ExpressionList        { if (priority < IMPORTANT_OUTPUT) printf("[]  VarSpec: IdentifierList Type = ExpressionList.\n"); }
-    | IdentifierList '=' ExpressionList             { if (priority < IMPORTANT_OUTPUT) printf("[]  VarSpec: IdentifierList = ExpressionList.\n"); }
-    ;
-    
-ConstDecl :
-    CONST ConstSpec                                       	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstDecl - const ConstSpec.\n"); }  
-    | CONST '(' ConstSpecs ')'                 			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstDecl - const ( ConstSpecs ).\n"); }
-    ;
-
-ConstSpecs :
-    | ConstSpecs ConstSpec ';'                             	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstSpecs - ConstSpecs ConstSpec.\n"); }
-    ;
-
-ConstSpec :
-    IdentifierList                                      	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstSpec - IdentifierList.\n"); }
-    | IdentifierList '=' ExpressionList                 	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstSpec - IdentifierList = ExpressionList.\n"); }
-    | IdentifierList Type '=' ExpressionList            	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ConstSpec - IdentifierList Type = ExpressionList.\n"); }
-    ;
-
-    
-Expression :
-	UnaryExpr					{ if (priority < IMPORTANT_OUTPUT) printf("[]  Expression - UnaryExpr.\n"); }
-	| Expression binary_op Expression		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Expression - Expression binary_op Expression.\n"); }
-	;	
-	
-IdentifierList :
-	IDENTIFIER                                              	{ if (priority < IMPORTANT_OUTPUT) printf("[%s] IdentifierList - Identifier.\n", yylval.buffer); }
-	| IdentifierList ',' IDENTIFIER                         	{ if (priority < IMPORTANT_OUTPUT) printf("[%s] IdentifierList - IdentifierList Identifier.\n", yylval.buffer); }
-	;
-
-OperandName :
-	IDENTIFIER				            	{ if (priority < IMPORTANT_OUTPUT) printf("[%s] OperandName - Identifier.\n", yylval.buffer); }
-	| QualifiedIdent			        	{ if (priority < IMPORTANT_OUTPUT) printf("[]  OperandName - QualifiedIdent.\n"); }
-	;	
-
-Operand :
-	Literal						        { if (priority < IMPORTANT_OUTPUT) printf("[]  Operand - Literal.\n"); }
-	| OperandName                       			{ if (priority < IMPORTANT_OUTPUT) printf("[]  Operand - OperandName.\n"); }
-	| OperandName TypeArgs		        		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Operand - OperandName TypeArgs.\n"); } 
-	| '(' Expression ')'					{ if (priority < IMPORTANT_OUTPUT) printf("[]  Operand - ( Expression ).\n"); }
-	;
-//Operand :
-//	Literal
-//	| IDENTIFIER
-//	| QualifiedIdent
-//	| IDENTIFIER TypeArgs
-//	| QualifiedIdent TypeArgs
-//	| '(' Expression ')'
-//	;
-	
-ExpressionList :
-    Expression                                      { if (priority < IMPORTANT_OUTPUT) printf("[]  ExpressionList - Expression.\n"); }
-    | ExpressionList ',' Expression                 { if (priority < IMPORTANT_OUTPUT) printf("[]  ExpressionList - ExpressionList , Expression.\n"); }
-    ;
-
-
-	
-UnaryExpr :
-	PrimaryExpr					{ if (priority < IMPORTANT_OUTPUT) printf("[]  UnaryExpr - PrimaryExpr.\n"); }
-	| unary_op UnaryExpr				{ if (priority < IMPORTANT_OUTPUT) printf("[]  UnaryExpr - unary_op UnaryExpr.\n"); }
-	;
-	
-binary_op :
-	OR						{ if (priority < IMPORTANT_OUTPUT) printf("[]  Binary_operator - ||.\n"); }
-	| AND						{ if (priority < IMPORTANT_OUTPUT) printf("[]  Binary_operator - &&.\n"); }
-	| rel_op					        { if (priority < IMPORTANT_OUTPUT) printf("[]  Binary_operator - Rel_op.\n"); }
-	| add_op					        { if (priority < IMPORTANT_OUTPUT) printf("[]  Binary_operator - Add_op.\n"); }
-	| mul_op						    { if (priority < IMPORTANT_OUTPUT) printf("[]  Binary_operator - Mul_op.\n"); }
-	;
-	
-rel_op :
-	EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - ==.\n"); }
-	| NOT_EQUALL					{ if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - !=.\n"); }
-	| '<'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - <.\n"); }
-	| LESS_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - <=.\n"); }
-	| '>'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - >.\n"); }
-	| GREATER_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Relativeness_operator - >=.\n"); }
-	;
-	
-add_op :
-	'+'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Addition_operator - +.\n"); }
-	| '-'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Addition_operator - -.\n"); }
-	| '|'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Addition_operator - |.\n"); }
-	| '^'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Addition_operator - ^.\n"); }
-	;
-	
-mul_op :
-	'*'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - *.\n"); }
-	| '/'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - /.\n"); }
-	| '%'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - %%.\n"); }
-	| SHIFT_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - <<.\n"); }
-	| SHIFT_RIGHT							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - >>.\n"); }
-	| '&'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - &.\n"); }
-	| AND_XOR							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Multiply_operator - &^.\n"); }
-	;
-	
-unary_op :
-	'+'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - +.\n"); }
-	| '-'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - -.\n"); }
-	| '!'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - !.\n"); }
-	| '^'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - ^.\n"); }
-	| '*'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - *.\n"); }
-	| '&'							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - &.\n"); }
-	| ARROW_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[]  Unary_operator - <-.\n"); }
-	;
-
-PrimaryExpr :
-	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - Operand.\n"); }
-	| Conversion						{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - Conversion.\n"); }
-	| MethodExpr						{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - MethodExpr.\n"); }
-	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - PrimaryExpr Selector.\n"); }
-	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - PrimaryExpr Index.\n"); }
-	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - PrimaryExpr Slice.\n"); }
-	| PrimaryExpr TypeAssertion				{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - PrimaryExpr TypeAssertion.\n"); }
-	| PrimaryExpr Arguments					{ if (priority < IMPORTANT_OUTPUT) printf("[]  PrimaryExpr - PrimaryExpr Arguments.\n"); }
-	;
-	
-Selector :
-	'.' IDENTIFIER						{ if (priority < IMPORTANT_OUTPUT) printf("[%s] Selector - . identifier.\n", yylval.buffer);}
-	;
-
-Index :
-    '[' Expression ']'						{ if (priority < IMPORTANT_OUTPUT) printf("[]  Index - Expression.\n"); }
-    ;
-	
-Slice :
-    '[' ':' ']'                                 		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ : ].\n"); }
-    | '[' Expression ':' ']'                                    { if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ Expression : ].\n"); }
-    | '[' ':' Expression ']'                                    { if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ : Expression ].\n"); }
-    | '[' Expression ':' Expression ']'                         { if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ Expression : Expression ].\n"); }
-    | '[' ':' Expression ':' Expression ']'                     { if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ : Expression : Expression ].\n"); }
-    | '[' Expression ':' Expression ':' Expression ']'          { if (priority < IMPORTANT_OUTPUT) printf("[]  Slice - [ Expression : Expression : Expression ].\n"); }
-    ;
-	
-TypeAssertion :
-	'.' '(' Type ')'				    { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeAssertion - . ( Type ).\n"); }
-	;
-
-Arguments :
-    '(' ')'                                 			{ if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( ).\n");  }
-    | '(' ExpressionList ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( ExpressionList ).\n");  }
-    | '(' ExpressionList MULTIDOT ')'                              { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( ExpressionList ... ).\n");  }
-    | '(' ExpressionList ',' ')'                                { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( ExpressionList , ).\n");  }
-    | '(' ExpressionList MULTIDOT ',' ')'                          { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( ExpressionList ... , ).\n");  }    
-    
-    | '(' Type ')'                                  		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type ).\n");  }
-    | '(' Type MULTIDOT ')'                                    	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type ... ).\n");  }
-    | '(' Type ',' ')'                                  	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type , ).\n");  }
-    | '(' Type MULTIDOT ',' ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type ... , ).\n");  }   
-    
-    | '(' Type ',' ExpressionList ')'                           { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type , ExpressionList ).\n");  }
-    | '(' Type ',' ExpressionList MULTIDOT ')'                     { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type , ExpressionList ... ).\n");  }
-    | '(' Type ',' ExpressionList ',' ')'                       { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type ExpressionList , ).\n");  }
-    | '(' Type ',' ExpressionList MULTIDOT ',' ')'                 { if (priority < IMPORTANT_OUTPUT) printf("[]  Arguments: ( Type ExpressionList ... , ).\n");  }
-    ;
-	
-Literal :
-	BasicLit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Literal - BasicLit.\n"); } 
-	| CompositeLit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Literal - CompositeLit.\n"); } 
-	| FunctionLit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Literal - FunctionLit.\n"); } 
-	;
-	
-FunctionLit :
-    FUNC Signature FunctionBody         			{ if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionLit - func Signature FucntionBody.\n"); }
-    ;
-	
-BasicLit :
-	INTEGER
-	| FLOAT
-	| IMAGINARY
-	| STRING
-	| RUNE
-	;
-
-CompositeLit :
-	LiteralType LiteralValue				{ if (priority < IMPORTANT_OUTPUT) printf("[]  CompositeLit - LiteralType LiteralValue.\n"); }
-	;
-	
-LiteralType :
-	StructType					        { if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - StructType.\n"); }
-	| ArrayType					        { if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - ArrayType.\n"); }
-	| '[' MULTIDOT ']' ElementType				{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - [ ... ] ElementType.\n"); }
-	| SliceType					        { if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - SliceType.\n"); }
-	| MapType					        { if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - MapType.\n"); }
-	| TypeName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - TypeName.\n"); }
-	| TypeName TypeArgs     				{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralType - TypeName TypeArgs.\n"); }
-	;
-	
-LiteralValue :
-    '{' '}'                         				{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralValue - { }.\n"); }
-    | '{' ElementList '}'                           		{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralValue - { ElementList }.\n"); }
-    | '{' ElementList ',' '}'                           	{ if (priority < IMPORTANT_OUTPUT) printf("[]  LiteralValue - { ElementList , }.\n"); }
-    ;
-	
-ElementList :
-	KeyedElement						{ if (priority < IMPORTANT_OUTPUT) printf("[]  ElementList - KeyedElement.\n"); }
-	| ElementList ',' KeyedElement				{ if (priority < IMPORTANT_OUTPUT) printf("[]  ElementList - ElementList , KeyedElement.\n"); }
-	;
-    
-KeyedElement :
-    Element                             			{ if (priority < IMPORTANT_OUTPUT) printf("[]  KeyedElement - Element.\n"); }
-    | Key ':' Element                               		{ if (priority < IMPORTANT_OUTPUT) printf("[]  KeyedElement - Key : Element.\n"); }
-    ;
- 	
-Key :
- 	Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Key - Expression.\n"); } 
- 	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Key - LiteralValue.\n"); }
- 	;
-
-Element : 
-	Expression					        { if (priority < IMPORTANT_OUTPUT) printf("[]  Element - Expression.\n"); }
-	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Element - LiteralValue.\n"); }
-	;
-
 Type :
-    	TypeName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[]  Type - TypeName.\n"); }
-	| TypeName TypeArgs        	        		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Type - Typename TypeArgs.\n"); }
-	| TypeLit			                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Type - TypeLit.\n"); }
-	| '(' Type ')'			            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Type - ( Type ).\n"); }
+    	TypeOperandName                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName TypeArgs        	        		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - Typename TypeArgs.\n", fileHeight); }
+	| TypeLit			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeLit.\n", fileHeight); }
+	| '(' Type ')'			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - ( Type ).\n", fileHeight); }
 	;
 
-TypeName :
-	IDENTIFIER 			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%s] TypeName - identifier.\n", yylval.buffer); }
-	| QualifiedIdent 		            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeName - QualifiedIdent.\n"); }
+TypeOperandName :
+	IDENTIFIER 			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeOperandName - identifier.\n", fileHeight, yylval.buffer); }
+	| QualifiedIdent 		            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeOperandName - QualifiedIdent.\n", fileHeight); }
 	;
 
 TypeArgs :
-    	'[' TypeList ']'                    			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeArgs - [ TypeList ].\n"); }
-	'[' TypeList ',' ']' 	    				{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeArgs - [ TypeList , ].\n"); }
+    	'[' TypeList ']'                    			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeArgs - [ TypeList      ].\n", fileHeight); }
+	'[' TypeList ',' ']' 	    				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeArgs - [ TypeList ,      ].\n", fileHeight); }
 	;
 	
 TypeList :
-    Type                        				{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeList - Type.\n"); }
-    | TypeList ',' Type                     			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeList - TypeList , Type.\n"); }
-    ;
+	Type                        				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeList - Type.\n", fileHeight); }
+	| TypeList ',' Type                     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeList - TypeList , Type.\n", fileHeight); }
+	;
 	
 TypeLit :
-	ArrayType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - ArrayType.\n");}
-	| FunctionType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - FunctionType.\n"); }
-	| StructType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - StructType.\n"); }
-	| PointerType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - PointerType.\n"); } 
-	| InterfaceType		                		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - InterfaceType.\n"); } 
-	| SliceType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - SliceType.\n"); }
-	| MapType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - MapType.\n"); }
-	| ChannelType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeLit - ChannelType.\n"); }
+	ArrayType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - ArrayType.\n", fileHeight);}
+	| StructType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - StructType.\n", fileHeight); }
+	| PointerType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - PointerType.\n", fileHeight); } 
+	| FunctionType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - FunctionType.\n", fileHeight); }
+	| InterfaceType		                		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - InterfaceType.\n", fileHeight); } 
+	| SliceType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - SliceType.\n", fileHeight); }
+	| MapType			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - MapType.\n", fileHeight); }
+	| ChannelType			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeLit - ChannelType.\n", fileHeight); }
 	;
 
 ArrayType :
-	'[' ArrayLength ']' ElementType     			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ArrayType - [ ArrayLength ] ElemenType.\n"); }
+	'[' ArrayLength ']' ElementType     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ArrayType - [ ArrayLength      ] ElemenType.\n", fileHeight); }
 	;
 
 ArrayLength :
-	Expression			                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ArrayLength - Expression.\n"); }
+	Expression			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ArrayLength - Expression.\n", fileHeight); }
 	;
 	
 ElementType :
-	Type				                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ElementType - Type.\n"); }
-	;
-
-FunctionType :
-	FUNC Signature 		                		{ if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionType - func Signature.\n"); }
+	Type				                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ElementType - Type.\n", fileHeight); }
 	;
 	
+SliceType :
+	'[' ']' ElementType                 			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    SliceType - [      ] ElemType.\n", fileHeight); }
+	;
+    
 StructType :
-	STRUCT '{' FieldDecls '}'				{ if (priority < IMPORTANT_OUTPUT) printf("[]  StructType - struct { FieldDecls }.\n"); }
+	STRUCT '{' FieldDecls '}'				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    StructType - struct { FieldDecls }.\n", fileHeight); }
 	;
 	
 FieldDecls :
-    	| FieldDecls  FieldDecl ';'             			{ if (priority < IMPORTANT_OUTPUT) printf("[]  FieldDecls - FieldDecls FieldDecl.\n"); }
+    	| FieldDecls  FieldDecl ';'             			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecls - FieldDecls FieldDecl.\n", fileHeight); }
     	;
     
 FieldDecl :
-    	IdentifierList Type                 			{ if (priority < IMPORTANT_OUTPUT) printf("[]  FieldDecl - IdentifierList Type.\n"); }
-	| IdentifierList Type Tag     	    			{ if (priority < IMPORTANT_OUTPUT) printf("[]  FieldDecl - IdentifierList Type Tag.\n"); }
-	| EmbeddedField                     			{ if (priority < IMPORTANT_OUTPUT) printf("[]  FieldDecl - EmbeddedField.\n"); }
-	| EmbeddedField Tag     				{ if (priority < IMPORTANT_OUTPUT) printf("[]  FieldDecl - EmbeddedField Tag.\n"); }
+    	IdentifierList Type                 			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - IdentifierList Type.\n", fileHeight); }
+	| IdentifierList Type Tag     	    			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - IdentifierList Type Tag.\n", fileHeight); }
+	| EmbeddedField                     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - EmbeddedField.\n", fileHeight); }
+	| EmbeddedField Tag     				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FieldDecl - EmbeddedField Tag.\n", fileHeight); }
 	;
 	
 EmbeddedField :
-    TypeName                        				{ if (priority < IMPORTANT_OUTPUT) printf("[]  EmbeddedField - TypeName.\n"); }
-    | '*' TypeName                      			{ if (priority < IMPORTANT_OUTPUT) printf("[]  EmbeddedField - * TypeName.\n"); }
-    | TypeName TypeArgs                     			{ if (priority < IMPORTANT_OUTPUT) printf("[]  EmbeddedField - TypeName TypeArgs.\n"); }
-    | '*' TypeName TypeArgs                     		{ if (priority < IMPORTANT_OUTPUT) printf("[]  EmbeddedField - * TypeName TypeArgs.\n"); }
-    ;
+	TypeOperandName                        				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - TypeOperandName.\n", fileHeight); }
+	| '*' TypeOperandName                      			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - * TypeOperandName.\n", fileHeight); }
+	| TypeOperandName TypeArgs                     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - TypeOperandName TypeArgs.\n", fileHeight); }
+	| '*' TypeOperandName TypeArgs                     		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmbeddedField - * TypeOperandName TypeArgs.\n", fileHeight); }
+	;
  	
 Tag : 
-	STRING					            	{ if (priority < IMPORTANT_OUTPUT) printf("[]  Tag - string.\n"); }
+	STRING					            	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Tag - string.\n", fileHeight); }
 	;
-	
+
 PointerType :
-    '*' BaseType                        			{ if (priority < IMPORTANT_OUTPUT) printf("[]  PointerType - * BaseType.\n"); }
-    ;
-
+	'*' BaseType                        			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PointerType - * BaseType.\n", fileHeight); }
+	;
+	
 BaseType :
-    Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  BaseType - Type.\n"); }
-    ;
-    
-InterfaceType :
-    INTERFACE '{' InterfaceElems '}'         			{ if (priority < IMPORTANT_OUTPUT) printf("[]  InterfaceType - interface { InterfaceElems }.\n"); }
-    ;
-
-InterfaceElems :
-    | InterfaceElems InterfaceElem ';'                 		{ if (priority < IMPORTANT_OUTPUT) printf("[]  InterfaceElems - InterfaceElems InterfaceElem.\n"); }
-    ;
-    
-InterfaceElem :
-    MethodElem                          			{ if (priority < IMPORTANT_OUTPUT) printf("[]  InterfaceElem - MethodElem.\n"); }
-    | TypeElem                          			{ if (priority < IMPORTANT_OUTPUT) printf("[]  InterfaceElem - TypeElem.\n"); }
-    ;
-
-MethodElem :
-    MethodName Signature                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  MethodElem - MethodName Signature.\n"); }
-    ;
-    
-MethodName :
-    IDENTIFIER                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%s] MethodName - identifier.\n", yylval.buffer); }
-    ;
-    
-TypeElem :
-    TypeTerm                            			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeElem - TypeTerm.\n"); }
-    | TypeElem '|' TypeTerm             			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeElem - TypeElem | TypeTerm.\n"); }
-    ;
-    
-TypeTerm :
-    Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeTerm - Type\n"); }
-    | UnderlyingType                    			{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeTerm - UnderlyingType\n"); }
-    ;
-
-UnderlyingType :
-    '~' Type                            			{ if (priority < IMPORTANT_OUTPUT) printf("[]  UnderlyingType - ~ Type.\n"); }
-    ;
-    
-SliceType :
-    '[' ']' ElementType                 			{ if (priority < IMPORTANT_OUTPUT) printf("[]  SliceType - [ ] ElemType.\n"); }
-    ;
-
-MapType :
-    MAP '[' KeyType ']' ElementType     			{ if (priority < IMPORTANT_OUTPUT) printf("[]  MapType - map [ KeyType ] ElementType.\n"); }
-    ;
-
-KeyType :
-    Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  KeyType - Type.\n"); }
-    ;
-
-ChannelType :    
-    CHAN ElementType                    			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ChannelType - chan ElementType.\n"); }
-    | CHAN ARROW_LEFT ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ChannelType - chan <- ElementType.\n"); }
-    | ARROW_LEFT CHAN ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ChannelType - <- chan ElementType.\n"); }
-    ;
-    
-Block :
-	'{' StatementList '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[]  Block - { StatementList }.\n"); }
+	Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    BaseType - Type.\n", fileHeight); }
 	;
     
-StatementList :
-    | StatementList Statement ';'          			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  StatementList - StatementList Statement ;.\n"); }
-    ;
-
-Statement :
-    Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - Declaration\n"); }
-    | LabeledStmt                       			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - LabeledStmt\n"); }
-    | SimpleStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - SimpleStmt\n"); }
-    | GoStmt                            			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - GoStmt\n"); }
-    | ReturnStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - ReturnStmt\n"); }
-    | BreakStmt                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - BreakStmt\n"); }
-    | ContinueStmt                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - ContinueStmt\n"); }
-    | GotoStmt                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - GotoStmt\n"); }
-    | FallthroughStmt                   			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - FallthroughStmt\n"); }
-    | Block                             			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - Block\n"); }
-    | IfStmt                            			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - IfStmt\n"); }
-    | SwitchStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - SwitchStmt\n"); }
-    | SelectStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - SelectStmt\n"); }
-    | ForStmt                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - ForStmt\n"); }
-    | DeferStmt                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Statement - DeferStmt\n"); }
-    ;
-    
-SelectStmt : 
-    SELECT '{' CommClauses '}'       				{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SelectStmt - select { CommClauses }.\n"); }
-    ;
-    
-CommClauses :
-    | CommClauses CommClause                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  CommClauses - CommClauses CommClause.\n"); }
-    ;
-    
-CommClause :
-    CommCase ':' StatementList              			{ if (priority < IMPORTANT_OUTPUT) printf("[]  CommClause - CommCase : StatementList.\n"); }
-    ;
-    
-CommCase :
-    CASE SendStmt                           			{ if (priority < IMPORTANT_OUTPUT) printf("[]  CommCase - SendStmt.\n"); }
-    | CASE RecvStmt                         			{ if (priority < IMPORTANT_OUTPUT) printf("[]  CommCase - RecvStmt.\n"); }
-    | DEFAULT                               			{ if (priority < IMPORTANT_OUTPUT) printf("[]  CommCase - default.\n"); }
-    ;
-    
-RecvStmt :
-    RecvExpr                                                	{ if (priority < IMPORTANT_OUTPUT) printf("[]  RecvStmt - RecvExpr.\n"); }
-    | ExpressionList '=' RecvExpr                           	{ if (priority < IMPORTANT_OUTPUT) printf("[]  RecvStmt - ExpressionList = RecvExpr.\n"); }
-    | IdentifierList ASSIGN RecvExpr                          	{ if (priority < IMPORTANT_OUTPUT) printf("[]  RecvStmt - IdentifierList := RecvExpr.\n"); }
-    ;
-    
-RecvExpr :
-    Expression                              			{ if (priority < IMPORTANT_OUTPUT) printf("[]  RecvExpr - Expression.\n"); }
-    ;
-    
-PostStmt :
-    SimpleStmt                          			{ if (priority < IMPORTANT_OUTPUT) printf("[]  PostStmt - SimpleStmt.\n"); }
-    ;
-    
-SimpleStmt :
-    EmptyStmt                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - EmptyStmt\n"); }
-    | ExpressionStmt                    			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - ExpressionStmt\n"); }
-    | SendStmt                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - SendStmt\n"); }
-    | IncDecStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - IncDecStmt\n"); }
-    | Assignment                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - Assignment\n"); }
-    | ShortVarDecl                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  SimpleStmt - ShortVarDecl\n"); }
-    ;
-    
-TypeSwitchStmt :
-    SWITCH TypeSwitchGuard '{' TypeCaseClauses '}'                          { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSwitchStmt - switch TypeSwitchGuard { TypeCaseClause }.\n"); }
-    | SWITCH SimpleStmt ';' TypeSwitchGuard '{' TypeCaseClauses '}'     { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSwitchStmt - switch SimpleStmt ; TypeSwitchGuard { TypeCaseClauses }.\n"); }
-    ;
-
-TypeSwitchGuard :
-    PrimaryExpr '.' '(' TYPE ')'                               	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSwitchGuard - PrimaryExpr . ( Type ).\n"); }
-    | IDENTIFIER ASSIGN PrimaryExpr '.' '(' TYPE ')'              { if (priority < IMPORTANT_OUTPUT) printf("[%s] TypeSwitchGuard - Identifier := PrimaryExpr . ( Type ).\n", yylval.buffer); }
-    ;
-   
-TypeCaseClauses :
-    | TypeCaseClauses TypeCaseClause                            { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeCaseClauses - TypeCaseClauses TypeCaseClause.\n"); }
-    ;
-    
-TypeCaseClause :
-    TypeSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeCaseClause - TypeSwitchCase : StatementList.\n"); }
-    ;
-   
-TypeSwitchCase :
-    CASE TypeList                                               { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSwitchCase - case TypeList.\n"); }
-    | DEFAULT                                                   { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSwitchCase - default.\n"); }
-    ;
-
-Declaration :
-    ConstDecl                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Declaration - ConstDecl\n"); }
-    | TypeDecl                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Declaration - TypeDecl\n"); }
-    | VarDecl                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  Declaration - VarDecl\n"); }
-    ;
-
-TopLevelDecls :
-    | TopLevelDecls TopLevelDecl ';'        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  TopLevelDecls - TopLevelDecls TopLevelDecl.\n"); }
-    ;
-
-TopLevelDecl :
-    Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  TopLevelDecl - Declaration.\n"); }
-    | FunctionDecl                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  TopLevelDecl - FunctionDecl.\n"); }
-    | MethodDecl                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[]  TopLevelDecl - MethodDecl.\n"); }
-    ;
-    
-TypeDecl :
-    TYPE TypeSpec                                               { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeDecl - type TypeSpec.\n"); }
-    | TYPE '(' TypeSpecs ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeDecl - type ( TypeSpecs ).\n"); }
-    ;
-    
-TypeSpecs :
-    | TypeSpecs TypeSpec ';'                                       { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSpecs - TypeSpecs TypeSpec.\n"); }
-    ;
-    
-TypeSpec :
-    AliasDecl                                                   { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSpec - AliasDecl\n"); }
-    | TypeDef                                                   { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeSpec - TypeDef\n"); }
-    ;
-
-AliasDecl :
-    IDENTIFIER '=' Type                                         { if (priority < IMPORTANT_OUTPUT) printf("[%s] AliasDecl - identifier = Type.\n", yylval.buffer); }
-    ;
-
-TypeDef :
-    IDENTIFIER Type                                             { if (priority < IMPORTANT_OUTPUT) printf("[%s] TypeDef - Identifier Type.\n", yylval.buffer); }
-    | IDENTIFIER TypeParameters  Type                           { if (priority < IMPORTANT_OUTPUT) printf("[%s] TypeDef - Identifier TypeParameters Type.\n", yylval.buffer); }
-    ;
-
-MethodDecl :
-    FUNC Receiver MethodName Signature                          { if (priority < IMPORTANT_OUTPUT) printf("[]  MethodDecl - func Receiver MethodName Signature.\n"); }
-    | FUNC Receiver MethodName Signature FunctionBody           { if (priority < IMPORTANT_OUTPUT) printf("[]  MethodDecl - func Receiver MethodName Signature FunctionBody.\n"); }
-    ;
-
-Conversion :
-    Type '(' Expression ')'                                     { if (priority < IMPORTANT_OUTPUT) printf("[]  Conversion - Type ( Expression ).\n"); }
-    | Type '(' Expression ',' ')'                               { if (priority < IMPORTANT_OUTPUT) printf("[]  Conversion - Type ( Expression , ).\n"); }
-    ;
-
-Receiver :
-    Parameters                                                  { if (priority < IMPORTANT_OUTPUT) printf("[]  Receiver - Parameters.\n"); }
-    ;
-    
-MethodExpr :
-    ReceiverType '.' MethodName                                 { if (priority < IMPORTANT_OUTPUT) printf("[]  MethodExpr - ReceiverType . MethodName\n"); }
-    ;
-    
-ReceiverType :
-    Type                                                        { if (priority < IMPORTANT_OUTPUT) printf("[]  ReceiverType - Type.\n"); }
-    ;
-    
-LabeledStmt :
-    Label ':' Statement                                         { if (priority <= IMPORTANT_OUTPUT) printf("[]  LabeledStmt - Label : Statement.\n"); }
-    ;
-
-Label :
-    IDENTIFIER                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%s] Label - Identifier.\n", yylval.buffer); }
-    ;
-
-EmptyStmt :
-                                                                { if (priority < IMPORTANT_OUTPUT) printf("[]  EmptyStmt - nothing.\n"); }
-    ;
-
-ExpressionStmt :
-    Expression                                                  { if (priority < IMPORTANT_OUTPUT) printf("[]  ExpressionStmt - Expression.\n"); }
-    ;
-
-SendStmt :
-    Channel ARROW_LEFT Expression                                     { if (priority < IMPORTANT_OUTPUT) printf("[]  SendStmt - Channel <- Expression.\n"); }
-    ;
-
-Channel :
-    Expression                                                  { if (priority < IMPORTANT_OUTPUT) printf("[]  Channel - Expression.\n"); }
-    ;
-
-IncDecStmt :
-    Expression INCREMENT                                             { if (priority < IMPORTANT_OUTPUT) printf("[]  IncDecStmt - Expression ++.\n"); }
-    | Expression DECREMENT                                          { if (priority < IMPORTANT_OUTPUT) printf("[]  IncDecStmt - Expression --.\n"); }
-    ;
-
-Assignment :
-    ExpressionList ASSIGN_OP ExpressionList                     { if (priority < IMPORTANT_OUTPUT) printf("[]  Assignment - ExpressionList assign_op ExpressionList.\n"); }
-    | ExpressionList '=' ExpressionList				{ if (priority < IMPORTANT_OUTPUT) printf("[] Assignment - ExpressionList = ExpressionList.\n"); }
-    | IdentifierList '=' ExpressionList				{ if (priority < IMPORTANT_OUTPUT) printf("[] Assignment - IdentifierList = ExpressionList.\n"); }
-    ;
-
-ShortVarDecl :
-    IdentifierList ASSIGN ExpressionList                          { if (priority < IMPORTANT_OUTPUT) printf("[]  ShortVarDecl - IdentifierList := ExpressionList.\n"); }
-    ;
-
-
-GoStmt :
-    GO Expression                                               { if (priority <= IMPORTANT_OUTPUT) printf("[]  GoStmt - go Expression.\n"); }
-    ;
-
-ReturnStmt :
-    RETURN                                                      { if (priority <= IMPORTANT_OUTPUT) printf("[]  ReturnStmt - return.\n"); }
-    | RETURN ExpressionList                                     { if (priority <= IMPORTANT_OUTPUT) printf("[]  ReturnStmt - return ExpressionList.\n"); }
-    ;
-
-BreakStmt :
-    BREAK                                                       { if (priority <= IMPORTANT_OUTPUT) printf("[]  BreadStmt - break.\n"); }
-    | BREAK Label                                               { if (priority <= IMPORTANT_OUTPUT) printf("[]  BreakStmt - break Label.\n"); }    
-    ;
-
-ContinueStmt :
-    CONTINUE                                                    { if (priority <= IMPORTANT_OUTPUT) printf("[]  ContinueStmt - continue.\n"); }
-    | CONTINUE Label                                            { if (priority <= IMPORTANT_OUTPUT) printf("[]  ContinueStmt - continue Label.\n"); }
-    ;
-
-GotoStmt :
-    GOTO Label                                                  { if (priority <= IMPORTANT_OUTPUT) printf("[]  GotoStmt - goto Label.\n"); }
-    ;
-
-FallthroughStmt :
-    FALLTHROUGH                                                 { if (priority <= IMPORTANT_OUTPUT) printf("[]  FallthroughStmt - fallthrough.\n"); }
-    ;
-
-IfStmt :
-    IF Expression Block                                         { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if Expression Block.\n"); }
-    
-    | IF SimpleStmt ';' Expression Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if SimpleStmt Expression Block.\n"); }
-    
-    | IF Expression Block ELSE IfStmt                           { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if Expression Block else IfStmt.\n"); }
-    | IF Expression Block ELSE Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if Expression Block else Block.\n"); }
-    
-    | IF SimpleStmt ';' Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if SimpleStmt Expression Block else IfStmt.\n"); }
-    | IF SimpleStmt ';' Expression Block ELSE Block                 { if (priority <= IMPORTANT_OUTPUT) printf("[]  IfStmt - if SimpleStmt Expression Block else Block.\n"); }
-    ;
-
-SwitchStmt :
-    ExprSwitchStmt                                              { if (priority <= IMPORTANT_OUTPUT) printf("[]  SwitchStmt - ExprSwitchStmt\n"); }
-    | TypeSwitchStmt                                            { if (priority <= IMPORTANT_OUTPUT) printf("[]  SwitchStmt - TypeSwitchStmt\n"); }
-    ;
-
-ExprSwitchStmt :
-    SWITCH '{' ExprCaseClauses '}'                              { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchStmt - switch { ExprCaseClauses }.\n"); }
-    | SWITCH SimpleStmt ';' '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchStmt - switch SimpleStmt { ExprCaseClauses }.\n"); }
-    | SWITCH Expression '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchStmt - switch Expression { ExprCaseClauses }.\n"); }
-    | SWITCH SimpleStmt ';' Expression '{' ExprCaseClauses '}'      { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchStmt - switch SimpleStmt Expression { ExprCaseClauses }.\n"); }
-    ;
-
-ExprCaseClauses :
-    | ExprCaseClauses ExprCaseClause                            { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprCaseClauses - ExprCaseClauses ExprCaseClause.\n"); }
-    ;
-    
-ExprCaseClause :
-    ExprSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprCaseClause - ExprSwitchCase : StatementList.\n"); }
-    ;
-
-ExprSwitchCase :
-    CASE ExpressionList                                         { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchCase - case ExpressionList.\n"); }
-    | DEFAULT                                                   { if (priority < IMPORTANT_OUTPUT) printf("[]  ExprSwitchCase - default.\n"); }
-    ;
-    
-ForStmt :
-    FOR Block                                                   { if (priority <= IMPORTANT_OUTPUT) printf("[]  ForStmt - for Block.\n"); }
-    | FOR Condition Block                                       { if (priority <= IMPORTANT_OUTPUT) printf("[]  ForStmt - for Condition Block.\n"); }
-    | FOR ForClause Block                                       { if (priority <= IMPORTANT_OUTPUT) printf("[]  ForStmt - for ForClause Block.\n"); }
-    | FOR RangeClause Block                                     { if (priority <= IMPORTANT_OUTPUT) printf("[]  ForStmt - for RangeClause Block.\n"); }
-    ;
-    
-DeferStmt :
-    DEFER Expression                                            { if (priority <= IMPORTANT_OUTPUT) printf("[]  DeferStmt - defer Expression.\n"); }
-    ;
-    
-InitStmt :
-    SimpleStmt                                                  { if (priority < IMPORTANT_OUTPUT) printf("[]  InitStmt - SimpleStmt.\n"); }
-    ;
-    
-RangeClause :
-    RANGE Expression                                            { if (priority < IMPORTANT_OUTPUT) printf("[]  RangeClause - range Expression.\n"); }
-    | ExpressionList '=' RANGE Expression                       { if (priority < IMPORTANT_OUTPUT) printf("[]  RangeClause - ExpressionList = range Expression.\n"); }
-    | IdentifierList ASSIGN RANGE Expression                      { if (priority < IMPORTANT_OUTPUT) printf("[]  RangeClause - IdentifierList := range Expression.\n"); }
-    ;
-    
-Condition :
-    Expression              					{ if (priority < IMPORTANT_OUTPUT) printf("[]  Condition - Expression.\n"); }
-    ;
-
-ForClause :
-    InitStmt ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ForClause - InitStmt ; ; PostStmt.\n"); }
-    | InitStmt ';' Condition ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[]  ForClause - InitStmt ; Condition ; PostStmt.\n"); }
-    ;
-	
-FunctionDecl :
-    FUNC FunctionName Signature                                 { if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionDecl - func FunctionName Signature.\n"); }
-    | FUNC FunctionName TypeParameters Signature                { if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionDecl - func FunctionName TypeParameters Signature.\n"); }
-    | FUNC FunctionName Signature FunctionBody                  { if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionDecl - func FunctionName Signature FunctionBody.\n"); }
-    | FUNC FunctionName TypeParameters Signature FunctionBody   { if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionDecl - func FunctionName TypeParameters Signature FunctionBody.\n"); }
-    ;
-    
-FunctionName :
-	IDENTIFIER	                                        { if (priority < IMPORTANT_OUTPUT) printf("[%s] FunctionName - identifier.\n", yylval.buffer); }
+FunctionType :
+	FUNC Signature 		                		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionType - func Signature.\n", fileHeight); }
 	;
 
-FunctionBody :
-	Block		                                        { if (priority < IMPORTANT_OUTPUT) printf("[]  FunctionBody - Block.\n"); }
-	;
-	
 Signature :
-    Parameters							{ if (priority < IMPORTANT_OUTPUT) printf("[]  Signature - Parameters.\n"); }
-    | Parameters Result			        		{ if (priority < IMPORTANT_OUTPUT) printf("[]  Signature - Parameters Result.\n"); }
+	Parameters							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Signature - Parameters.\n", fileHeight); }
+	| Parameters Result			        		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Signature - Parameters Result.\n", fileHeight); }
+	;
+	
+Result :
+	Parameters 					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Result - Parameters.\n", fileHeight); }
+	| Type						        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Result - Type.\n", fileHeight); }
 	;
 	
 Parameters :
-    '('')'                             				{ if (priority < IMPORTANT_OUTPUT) printf("[]  Parameters - ( ).\n"); }
-    | '(' ParameterList ')'             			{ if (priority < IMPORTANT_OUTPUT) printf("[]  Parameters - ( ParameterList ).\n"); }
-    | '(' ParameterList ',' ')' 	    			{ if (priority < IMPORTANT_OUTPUT) printf("[]  Parameters - ( ParameterList , ).\n"); }
+	'('')'                             				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Parameters - ( ).\n", fileHeight); }
+	| '(' ParameterList ')'             			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Parameters - ( ParameterList ).\n", fileHeight); }
+	| '(' ParameterList ',' ')' 	    			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Parameters - ( ParameterList , ).\n", fileHeight); }
 	;
 	
-//ParameterList :	
-//	ParametersNamed
-//	| ParametersUnnamed
-//	| ParameterList ',' ParametersNamed
-//	| ParameterList ',' ParametersUnnamed
-//	;	
-//
-//ParametersNamed :
-//	IdentifierList Type
-//	;
-//
-//ParametersUnnamed :
-//	IdentifierList
-//	| TypeList
-//	| ParametersUnnamed ',' TypeList
-//	| ParametersUnnamed ',' IdentifierList
-//	;
-	
 ParameterList :	
-	ParameterDecl						{ if (priority < IMPORTANT_OUTPUT) printf("[] ParameterList - ParameterDecl.\n"); }
-	| ParameterList ',' ParameterDecl			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ParameterList - ParameterList , ParameterDecl.\n"); }
+	ParameterDecl						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterList - ParameterDecl.\n", fileHeight); }
+	| ParameterList ',' ParameterDecl			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterList - ParameterList , ParameterDecl.\n", fileHeight); }
 	;
 
 ParameterDecl :
-	Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ParameterDecl - Type.\n"); }
-	| IdentifierList Type               			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ParameterDecl - IdentifierList Type.\n"); }
-	| MULTIDOT Type                        			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ParameterDecl - ... Type.\n"); }
-	| IdentifierList MULTIDOT Type         			{ if (priority < IMPORTANT_OUTPUT) printf("[]  ParameterDecl - IdentifierList ... Type.\n"); }
-	;
-    	
-Result :
-	Parameters 					        { if (priority < IMPORTANT_OUTPUT) printf("[]  Result - Parameters.\n"); }
-	| Type						        { if (priority < IMPORTANT_OUTPUT) printf("[]  Result - Type.\n"); }
-	;
-	
+	ParametersNamed						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - ParametersNamed.\n", fileHeight); }
+	| ParametersUnnamed					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - ParametersUnnamed.\n", fileHeight); }
+	;	
 
+ParametersNamed :
+	IdentifierList Type					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParametersNamed - IdentifierList Type.\n", fileHeight); }
+	| MULTIDOT Type						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParametersNamed - ... Type.\n", fileHeight); }
+	| IdentifierList MULTIDOT Type				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParametersNamed - IdentifierList ... Type.\n", fileHeight); }
+	;
+
+ParametersUnnamed :
+	IdentifierList						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParametersUnamed - IdentifierList.\n", fileHeight); }
+	| TypeList /* Adds conflict. */				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParametersUnamed - TypeList.\n", fileHeight); }
+	;	
+
+//ParameterDecl :
+//	Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - Type.\n", fileHeight); }
+//	| IdentifierList Type               			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierList Type.\n", fileHeight); }
+//	| MULTIDOT Type                        			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - ... Type.\n", fileHeight); }
+//	| IdentifierList MULTIDOT Type         			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierList ... Type.\n", fileHeight); }
+//	;
+
+InterfaceType :
+	INTERFACE '{' InterfaceElems '}'         			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    InterfaceType - interface { InterfaceElems }.\n", fileHeight); }
+	;
+
+InterfaceElems :
+	| InterfaceElems InterfaceElem ';'                 		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    InterfaceElems - InterfaceElems InterfaceElem.\n", fileHeight); }
+	;
+    
+InterfaceElem :
+	MethodElem                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    InterfaceElem - MethodElem.\n", fileHeight); }
+	| TypeElem                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    InterfaceElem - TypeElem.\n", fileHeight); }
+	;
+
+MethodElem :
+	IDENTIFIER Signature                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    MethodElem - MethodName Signature.\n", fileHeight); }
+	;
+    
+TypeElem :
+	TypeTerm                            			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeElem - TypeTerm.\n", fileHeight); }
+	| TypeElem '|' TypeTerm             			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeElem - TypeElem | TypeTerm.\n", fileHeight); }
+	;
+    
+TypeTerm :
+	Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeTerm - Type\n", fileHeight); }
+	| UnderlyingType                    			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeTerm - UnderlyingType\n", fileHeight); }
+	;
+
+UnderlyingType :
+	'~' Type                            			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    UnderlyingType - ~ Type.\n", fileHeight); }
+	;
+    
+MapType :
+	MAP '[' KeyType ']' ElementType     			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    MapType - map [ KeyType      ] ElementType.\n", fileHeight); }
+	;
+
+KeyType :
+	Type                                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    KeyType - Type.\n", fileHeight); }
+	;
+    
+ChannelType :    
+	CHAN ElementType                    			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ChannelType - chan ElementType.\n", fileHeight); }
+	| CHAN ARROW_LEFT ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ChannelType - chan <- ElementType.\n", fileHeight); }
+	| ARROW_LEFT CHAN ElementType       			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ChannelType - <- chan ElementType.\n", fileHeight); }
+	;
+    
+Block :
+	'{' StatementList '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Block - { StatementList }.\n", fileHeight); }
+	;
+    
+StatementList :
+	| StatementList Statement ';'          			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    StatementList - StatementList Statement ;.\n", fileHeight); }
+	;
+    
+Declaration :
+	ConstDecl                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Declaration - ConstDecl\n", fileHeight); }
+	| TypeDecl                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Declaration - TypeDecl\n", fileHeight); }
+	| VarDecl                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Declaration - VarDecl\n", fileHeight); }
+	;
+    
+TopLevelDecl :
+	Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecl - Declaration.\n", fileHeight); }
+	| FunctionDecl                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecl - FunctionDecl.\n", fileHeight); }
+	| MethodDecl                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecl - MethodDecl.\n", fileHeight); }
+	;
+    
+ConstDecl :
+	CONST ConstSpec                                       	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstDecl - const ConstSpec.\n", fileHeight); }  
+	| CONST '(' ConstSpecs ')'                 			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstDecl - const ( ConstSpecs ).\n", fileHeight); }
+	;
+
+ConstSpecs :
+	| ConstSpecs ConstSpec ';'                             	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstSpecs - ConstSpecs ConstSpec.\n", fileHeight); }
+	;
+
+ConstSpec :
+	IdentifierList                                      	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstSpec - IdentifierList.\n", fileHeight); }
+	| IdentifierList '=' ExpressionList                 	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstSpec - IdentifierList = ExpressionList.\n", fileHeight); }
+	| IdentifierList Type '=' ExpressionList            	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ConstSpec - IdentifierList Type = ExpressionList.\n", fileHeight); }
+	;
+    
+IdentifierList :
+	IDENTIFIER                                              	{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] IdentifierList - Identifier.\n", fileHeight, yylval.buffer); }
+	| IdentifierList ',' IDENTIFIER                         	{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] IdentifierList - IdentifierList Identifier.\n", fileHeight, yylval.buffer); }
+	;
 	
+ExpressionList :
+	Expression                                      { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExpressionList - Expression.\n", fileHeight); }
+	| ExpressionList ',' Expression                 { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExpressionList - ExpressionList , Expression.\n", fileHeight); }
+	;
+    
+TypeDecl :
+	TYPE TypeSpec                                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeDecl - type TypeSpec.\n", fileHeight); }
+	| TYPE '(' TypeSpecs ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeDecl - type ( TypeSpecs ).\n", fileHeight); }
+	;
+    
+TypeSpecs :
+	| TypeSpecs TypeSpec ';'                                       { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSpecs - TypeSpecs TypeSpec.\n", fileHeight); }
+	;
+    
+TypeSpec :
+	AliasDecl                                                   { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSpec - AliasDecl\n", fileHeight); }
+	| TypeDef                                                   { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSpec - TypeDef\n", fileHeight); }
+	;
+
+AliasDecl :
+	IDENTIFIER '=' Type                                         { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] AliasDecl - identifier = Type.\n", fileHeight, yylval.buffer); }
+	;    
+
+TypeDef :
+	IDENTIFIER Type                                             { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeDef - Identifier Type.\n", fileHeight, yylval.buffer); }
+	| IDENTIFIER TypeParameters  Type                           { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeDef - Identifier TypeParameters Type.\n", fileHeight, yylval.buffer); }
+	;
+    
 TypeParameters :
-    '[' TypeParamList ']'                                   	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeParameters - [ TypeParamList ].\n"); }
-	'[' TypeParamList ',' ']' 		                { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeParameters - [ TypeParamList , ].\n"); }
+    	'[' TypeParamList ']'                                   	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeParameters - [ TypeParamList      ].\n", fileHeight); }
+	| '[' TypeParamList ',' ']' 		                { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeParameters - [ TypeParamList ,      ].\n", fileHeight); }
 	;
 	
 TypeParamList :
-    TypeParamDecl                                           	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeParamList - TypeParamDecl.\n"); }
-    | TypeParamList ',' TypeParamDecl                       	{ if (priority < IMPORTANT_OUTPUT) printf("[]  TypeParamList - TypeParamList , TypeParamDecl.\n"); }
-    ;
-	
-TypeConstraint :
-	TypeElem					        { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeConstraint - TypeElem.\n"); }
+	TypeParamDecl                                           	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeParamList - TypeParamDecl.\n", fileHeight); }
+	| TypeParamList ',' TypeParamDecl                       	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeParamList - TypeParamList , TypeParamDecl.\n", fileHeight); }
 	;
 
 TypeParamDecl :
-	IdentifierList TypeConstraint 			        { if (priority < IMPORTANT_OUTPUT) printf("[]  TypeParamDecl - IdentifierList TypeConstraint.\n"); }
+	IdentifierList TypeConstraint 			        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeParamDecl - IdentifierList TypeConstraint.\n", fileHeight); }
+	;
+	
+TypeConstraint :
+	TypeElem					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeConstraint - TypeElem.\n", fileHeight); }
+	;
+
+VarDecl :
+	VAR VarSpec				    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarDecl - VAR VarSpec.\n", fileHeight); }
+	| VAR '(' VarSpecs ')'	                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarDecl - VAR ( VarSpec ; ).\n", fileHeight); }
+	;
+	
+VarSpecs :
+	| VarSpecs VarSpec ';'                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarSpecs - VarSpecs VarSpec.\n", fileHeight); }
+	;
+    
+VarSpec :
+	IdentifierList Type                             { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarSpec: IdentifierList Type.\n", fileHeight); }
+	| IdentifierList Type '=' ExpressionList        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarSpec: IdentifierList Type = ExpressionList.\n", fileHeight); }
+	| IdentifierList '=' ExpressionList             { if (priority < IMPORTANT_OUTPUT) printf("[%d]    VarSpec: IdentifierList = ExpressionList.\n", fileHeight); }
+	;
+    
+ShortVarDecl :
+	IdentifierList ASSIGN ExpressionList                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ShortVarDecl - IdentifierList := ExpressionList.\n", fileHeight); }
+	;
+    
+FunctionDecl :
+	FUNC FunctionName Signature                                 { if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionDecl - func FunctionName Signature.\n", fileHeight); }
+	| FUNC FunctionName TypeParameters Signature                { if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionDecl - func FunctionName TypeParameters Signature.\n", fileHeight); }
+	| FUNC FunctionName Signature FunctionBody                  { if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionDecl - func FunctionName Signature FunctionBody.\n", fileHeight); }
+	| FUNC FunctionName TypeParameters Signature FunctionBody   { if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionDecl - func FunctionName TypeParameters Signature FunctionBody.\n", fileHeight); }
+	;
+    
+FunctionName :
+	IDENTIFIER	                                        { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] FunctionName - identifier.\n", fileHeight, yylval.buffer); }
+	;
+
+FunctionBody :
+	Block		                                        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionBody - Block.\n", fileHeight); }
+	;
+	
+MethodDecl :
+	FUNC Receiver IDENTIFIER Signature                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    MethodDecl - func Receiver MethodName Signature.\n", fileHeight); }
+	| FUNC Receiver IDENTIFIER Signature FunctionBody           { if (priority < IMPORTANT_OUTPUT) printf("[%d]    MethodDecl - func Receiver MethodName Signature FunctionBody.\n", fileHeight); }
+	;
+
+Receiver :
+	Parameters                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Receiver - Parameters.\n", fileHeight); }
+	;
+    
+Operand :
+	Literal						        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - Literal.\n", fileHeight); }
+	| TypeOperandName                       		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName TypeArgs		        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName TypeArgs.\n", fileHeight); } 
+	| '(' Expression ')'					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - ( Expression ).\n", fileHeight); }
+	;
+	
+Literal :
+	BasicLit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Literal - BasicLit.\n", fileHeight); } 
+	| CompositeLit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Literal - CompositeLit.\n", fileHeight); } 
+	| FunctionLit				        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Literal - FunctionLit.\n", fileHeight); } 
+	;
+	
+BasicLit :
+	INTEGER							{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Integer.\n", fileHeight, yylval.buffer); } 
+	| FLOAT							{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Float.\n", fileHeight, yylval.buffer); } 
+	| IMAGINARY						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Imaginary.\n", fileHeight, yylval.buffer); } 
+	| RUNE							{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - Rune.\n", fileHeight, yylval.buffer); } 
+	| STRING						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]     BasicLit - String.\n", fileHeight, yylval.buffer); } 
 	;
 
 QualifiedIdent :
-	PackageName '.' IDENTIFIER	                        { if (priority < IMPORTANT_OUTPUT) printf("[%s] QualifiedIdent - PackageName . identifier.\n", yylval.buffer); }
+	PackageName '.' IDENTIFIER	                        { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] QualifiedIdent - PackageName . identifier.\n", fileHeight, yylval.buffer); }
+	;
+	
+CompositeLit :
+	LiteralType LiteralValue				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CompositeLit - LiteralType LiteralValue.\n", fileHeight); }
+	;
+	
+LiteralType :
+	StructType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - StructType.\n", fileHeight); }
+	| ArrayType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - ArrayType.\n", fileHeight); }
+	| '[' MULTIDOT ']' ElementType				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - [ ...      ] ElementType.\n", fileHeight); }
+	| SliceType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - SliceType.\n", fileHeight); }
+	| MapType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - MapType.\n", fileHeight); }
+//	| TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName.\n", fileHeight); }
+//	| TypeOperandName TypeArgs     				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName TypeArgs.\n", fileHeight); }
+	;
+	
+LiteralValue :
+	'{' '}'                         				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralValue - { }.\n", fileHeight); }
+	| '{' ElementList '}'                           		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralValue - { ElementList }.\n", fileHeight); }
+	| '{' ElementList ',' '}'                           	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralValue - { ElementList , }.\n", fileHeight); }
+	;
+	
+ElementList :
+	KeyedElement						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ElementList - KeyedElement.\n", fileHeight); }
+	| ElementList ',' KeyedElement				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ElementList - ElementList , KeyedElement.\n", fileHeight); }
+	;
+    
+KeyedElement :
+	Element                             			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    KeyedElement - Element.\n", fileHeight); }
+	| Key ':' Element                               		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    KeyedElement - Key : Element.\n", fileHeight); }
+	;
+ 	
+Key :
+	//IDENTIFIER
+ 	Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - Expression.\n", fileHeight); } 
+ 	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - LiteralValue.\n", fileHeight); }
+ 	;
+
+Element : 
+	Expression					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Element - Expression.\n", fileHeight); }
+	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Element - LiteralValue.\n", fileHeight); }
+	;	
+			
+FunctionLit :
+	FUNC Signature FunctionBody         			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionLit - func Signature FucntionBody.\n", fileHeight); }
+	;
+    
+PrimaryExpr :
+	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
+	| Conversion						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Conversion.\n", fileHeight); }
+	| Type '.' IDENTIFIER					{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]    PrimaryExpr - Type . IDENTIFIER.\n", fileHeight, yylval.buffer); }
+	//| IDENTIFIER '.' IDENTIFIER				{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s]    PrimaryExpr - IDENTIFIER . IDENTIFIER.\n", fileHeight, yylval.buffer); }
+	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
+	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
+	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
+	| PrimaryExpr TypeAssertion				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr TypeAssertion.\n", fileHeight); }
+	| PrimaryExpr Arguments					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Arguments.\n", fileHeight); }
+	;
+	
+Selector :
+	'.' IDENTIFIER						{ if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] Selector - . identifier.\n", fileHeight, yylval.buffer);}
+	;
+
+Index :
+	'[' Expression ']'						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Index - Expression.\n", fileHeight); }
+	;
+	
+Slice :
+	'[' ':' ']'                                 		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ ].\n", fileHeight); }
+	| '[' Expression ':' ']'                                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ Expression ].\n", fileHeight); }
+	| '[' ':' Expression ']'                                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ : Expression      ].\n", fileHeight); }
+	| '[' Expression ':' Expression ']'                         { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ Expression : Expression      ].\n", fileHeight); }
+	| '[' ':' Expression ':' Expression ']'                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ : Expression : Expression      ].\n", fileHeight); }
+	| '[' Expression ':' Expression ':' Expression ']'          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Slice - [ Expression : Expression : Expression      ].\n", fileHeight); }
+	;
+	
+TypeAssertion :
+	'.' '(' Type ')'				    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeAssertion - . ( Type ).\n", fileHeight); }
+	;
+
+Arguments :
+	'(' ')'                                 			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( ).\n", fileHeight);  }
+	| '(' ExpressionList ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( ExpressionList ).\n", fileHeight);  }
+	| '(' ExpressionList MULTIDOT ')'                              { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( ExpressionList ... ).\n", fileHeight);  }
+	| '(' ExpressionList ',' ')'                                { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( ExpressionList , ).\n", fileHeight);  }
+	| '(' ExpressionList MULTIDOT ',' ')'                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( ExpressionList ... , ).\n", fileHeight);  }    
+	
+	| '(' Type ')'                                  		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type ).\n", fileHeight);  }
+	| '(' Type MULTIDOT ')'                                    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type ... ).\n", fileHeight);  }
+	| '(' Type ',' ')'                                  	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type , ).\n", fileHeight);  }
+	| '(' Type MULTIDOT ',' ')'                                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type ... , ).\n", fileHeight);  }   
+	
+	| '(' Type ',' ExpressionList ')'                           { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type , ExpressionList ).\n", fileHeight);  }
+	| '(' Type ',' ExpressionList MULTIDOT ')'                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type , ExpressionList ... ).\n", fileHeight);  }
+	| '(' Type ',' ExpressionList ',' ')'                       { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type ExpressionList , ).\n", fileHeight);  }
+	| '(' Type ',' ExpressionList MULTIDOT ',' ')'                 { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Arguments: ( Type ExpressionList ... , ).\n", fileHeight);  }
+	;
+    
+Expression :
+	UnaryExpr					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Expression - UnaryExpr.\n", fileHeight); }
+	| Expression binary_op Expression		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Expression - Expression binary_op Expression.\n", fileHeight); }
+	;
+	
+UnaryExpr :
+	PrimaryExpr					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    UnaryExpr - PrimaryExpr.\n", fileHeight); }
+	| unary_op UnaryExpr				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    UnaryExpr - unary_op UnaryExpr.\n", fileHeight); }
+	;
+	
+binary_op :
+	OR						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Binary_operator - ||.\n", fileHeight); }
+	| AND						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Binary_operator - &&.\n", fileHeight); }
+	| rel_op					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Binary_operator - Rel_op.\n", fileHeight); }
+	| add_op					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Binary_operator - Add_op.\n", fileHeight); }
+	| mul_op						    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Binary_operator - Mul_op.\n", fileHeight); }
+	;
+	
+rel_op :
+	EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - ==.\n", fileHeight); }
+	| NOT_EQUALL					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - !=.\n", fileHeight); }
+	| '<'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - <.\n", fileHeight); }
+	| LESS_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - <=.\n", fileHeight); }
+	| '>'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - >.\n", fileHeight); }
+	| GREATER_EQUALL							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Relativeness_operator - >=.\n", fileHeight); }
+	;
+	
+add_op :
+	'+'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Addition_operator - +.\n", fileHeight); }
+	| '-'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Addition_operator - -.\n", fileHeight); }
+	| '|'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Addition_operator - |.\n", fileHeight); }
+	| '^'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Addition_operator - ^.\n", fileHeight); }
+	;
+	
+mul_op :
+	'*'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - *.\n", fileHeight); }
+	| '/'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - /.\n", fileHeight); }
+	| '%'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - %%.\n", fileHeight); }
+	| SHIFT_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - <<.\n", fileHeight); }
+	| SHIFT_RIGHT							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - >>.\n", fileHeight); }
+	| '&'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - &.\n", fileHeight); }
+	| AND_XOR							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Multiply_operator - &^.\n", fileHeight); }
+	;
+	
+unary_op :
+	'+'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - +.\n", fileHeight); }
+	| '-'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - -.\n", fileHeight); }
+	| '!'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - !.\n", fileHeight); }
+	| '^'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - ^.\n", fileHeight); }
+	| '*'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - *.\n", fileHeight); }
+	| '&'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - &.\n", fileHeight); }
+	| ARROW_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - <-.\n", fileHeight); }
+	;
+
+Conversion :
+	Type '(' Expression ')'                                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression ).\n", fileHeight); }
+	| Type '(' Expression ',' ')'                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression , ).\n", fileHeight); }
+	;
+    
+Statement :
+	Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - Declaration\n", fileHeight); }
+	| LabeledStmt                       			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - LabeledStmt\n", fileHeight); }
+	| SimpleStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - SimpleStmt\n", fileHeight); }
+	| GoStmt                            			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - GoStmt\n", fileHeight); }
+	| ReturnStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - ReturnStmt\n", fileHeight); }
+	| BreakStmt                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - BreakStmt\n", fileHeight); }
+	| ContinueStmt                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - ContinueStmt\n", fileHeight); }
+	| GotoStmt                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - GotoStmt\n", fileHeight); }
+	| FallthroughStmt                   			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - FallthroughStmt\n", fileHeight); }
+	| Block                             			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - Block\n", fileHeight); }
+	| IfStmt                            			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - IfStmt\n", fileHeight); }
+	| SwitchStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - SwitchStmt\n", fileHeight); }
+	| SelectStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - SelectStmt\n", fileHeight); }
+	| ForStmt                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - ForStmt\n", fileHeight); }
+	| DeferStmt                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - DeferStmt\n", fileHeight); }
+	;
+    
+SimpleStmt :
+	EmptyStmt                           			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - EmptyStmt\n", fileHeight); }
+	| ExpressionStmt                    			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - ExpressionStmt\n", fileHeight); }
+	| SendStmt                          			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - SendStmt\n", fileHeight); }
+	| IncDecStmt                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - IncDecStmt\n", fileHeight); }
+	| Assignment                        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - Assignment\n", fileHeight); }
+	| ShortVarDecl                      			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SimpleStmt - ShortVarDecl\n", fileHeight); }
+	;
+    
+EmptyStmt :
+								{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    EmptyStmt - nothing.\n", fileHeight); }
+	;
+    
+LabeledStmt :
+	Label ':' Statement                                         { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    LabeledStmt - Label : Statement.\n", fileHeight); }
+	;
+
+Label :
+	IDENTIFIER                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] Label - Identifier.\n", fileHeight, yylval.buffer); }
+	;
+
+ExpressionStmt :
+	Expression                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExpressionStmt - Expression.\n", fileHeight); }
+	;
+
+SendStmt :
+	Channel ARROW_LEFT Expression                                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    SendStmt - Channel <- Expression.\n", fileHeight); }
+	;
+
+Channel :
+	Expression                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Channel - Expression.\n", fileHeight); }
+	;
+    
+IncDecStmt :
+	Expression INCREMENT                                             { if (priority < IMPORTANT_OUTPUT) printf("[%d]    IncDecStmt - Expression ++.\n", fileHeight); }
+	| Expression DECREMENT                                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    IncDecStmt - Expression --.\n", fileHeight); }
+	;
+
+Assignment :
+	ExpressionList ASSIGN_OP ExpressionList                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Assignment - ExpressionList assign_op ExpressionList.\n", fileHeight); }
+	| ExpressionList '=' ExpressionList				{ if (priority < IMPORTANT_OUTPUT) printf("[%d] Assignment - ExpressionList = ExpressionList.\n", fileHeight); }
+	//| IdentifierList '=' ExpressionList				{ if (priority < IMPORTANT_OUTPUT) printf("[%d] Assignment - IdentifierList = ExpressionList.\n", fileHeight); }
+	;
+    
+IfStmt :
+	IF Expression Block                                         { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if Expression Block.\n", fileHeight); }
+	
+	| IF SimpleStmt ';' Expression Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if SimpleStmt Expression Block.\n", fileHeight); }
+	
+	| IF Expression Block ELSE IfStmt                           { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if Expression Block else IfStmt.\n", fileHeight); }
+	| IF Expression Block ELSE Block                            { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if Expression Block else Block.\n", fileHeight); }
+	
+	| IF SimpleStmt ';' Expression Block ELSE IfStmt                { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if SimpleStmt Expression Block else IfStmt.\n", fileHeight); }
+	| IF SimpleStmt ';' Expression Block ELSE Block                 { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    IfStmt - if SimpleStmt Expression Block else Block.\n", fileHeight); }
+	;
+
+SwitchStmt :
+	ExprSwitchStmt                                              { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SwitchStmt - ExprSwitchStmt\n", fileHeight); }
+	| TypeSwitchStmt                                            { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SwitchStmt - TypeSwitchStmt\n", fileHeight); }
+	;
+
+ExprSwitchStmt :
+	SWITCH '{' ExprCaseClauses '}'                              { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchStmt - switch { ExprCaseClauses }.\n", fileHeight); }
+	| SWITCH SimpleStmt ';' '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchStmt - switch SimpleStmt { ExprCaseClauses }.\n", fileHeight); }
+	| SWITCH Expression '{' ExprCaseClauses '}'                 { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchStmt - switch Expression { ExprCaseClauses }.\n", fileHeight); }
+	| SWITCH SimpleStmt ';' Expression '{' ExprCaseClauses '}'      { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchStmt - switch SimpleStmt Expression { ExprCaseClauses }.\n", fileHeight); }
+	;
+
+ExprCaseClauses :
+	| ExprCaseClauses ExprCaseClause                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprCaseClauses - ExprCaseClauses ExprCaseClause.\n", fileHeight); }
+	;
+    
+ExprCaseClause :
+	ExprSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprCaseClause - ExprSwitchCase : StatementList.\n", fileHeight); }
+	;
+
+ExprSwitchCase :
+	CASE ExpressionList                                         { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchCase - case ExpressionList.\n", fileHeight); }
+	| DEFAULT                                                   { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprSwitchCase - default.\n", fileHeight); }
+	;
+
+TypeSwitchStmt :
+	SWITCH TypeSwitchGuard '{' TypeCaseClauses '}'                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSwitchStmt - switch TypeSwitchGuard { TypeCaseClause }.\n", fileHeight); }
+	| SWITCH SimpleStmt ';' TypeSwitchGuard '{' TypeCaseClauses '}'     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSwitchStmt - switch SimpleStmt ; TypeSwitchGuard { TypeCaseClauses }.\n", fileHeight); }
+	;
+
+TypeSwitchGuard :
+	PrimaryExpr '.' '(' TYPE ')'                               	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSwitchGuard - PrimaryExpr . ( Type ).\n", fileHeight); }
+	| IDENTIFIER ASSIGN PrimaryExpr '.' '(' TYPE ')'              { if (priority < IMPORTANT_OUTPUT) printf("[%d: %s] TypeSwitchGuard - Identifier := PrimaryExpr . ( Type ).\n", fileHeight, yylval.buffer); }
+	;
+   
+TypeCaseClauses :
+	| TypeCaseClauses TypeCaseClause                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeCaseClauses - TypeCaseClauses TypeCaseClause.\n", fileHeight); }
+	;
+    
+TypeCaseClause :
+	TypeSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeCaseClause - TypeSwitchCase : StatementList.\n", fileHeight); }
+	;
+   
+TypeSwitchCase :
+	CASE TypeList                                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSwitchCase - case TypeList.\n", fileHeight); }
+	| DEFAULT                                                   { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeSwitchCase - default.\n", fileHeight); }
+	;
+    
+ForStmt :
+	FOR Block                                                   { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ForStmt - for Block.\n", fileHeight); }
+	| FOR Condition Block                                       { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ForStmt - for Condition Block.\n", fileHeight); }
+	| FOR ForClause Block                                       { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ForStmt - for ForClause Block.\n", fileHeight); }
+	| FOR RangeClause Block                                     { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ForStmt - for RangeClause Block.\n", fileHeight); }
+	;
+    
+Condition :
+	Expression              					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Condition - Expression.\n", fileHeight); }
+	;
+    
+ForClause :
+	InitStmt ';'           ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ForClause - InitStmt ; ; PostStmt.\n", fileHeight); }
+	| InitStmt ';' Condition ';' PostStmt                   	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ForClause - InitStmt ; Condition ; PostStmt.\n", fileHeight); }
+	;
+    
+InitStmt :
+	SimpleStmt                                                  { if (priority < IMPORTANT_OUTPUT) printf("[%d]    InitStmt - SimpleStmt.\n", fileHeight); }
+	;
+    
+PostStmt :
+	SimpleStmt                          			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PostStmt - SimpleStmt.\n", fileHeight); }
+	;
+    
+RangeClause :
+	RANGE Expression                                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - range Expression.\n", fileHeight); }
+	| ExpressionList '=' RANGE Expression                       { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - ExpressionList = range Expression.\n", fileHeight); }
+	| IdentifierList ASSIGN RANGE Expression                      { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - IdentifierList := range Expression.\n", fileHeight); }
+	;
+    
+GoStmt :
+	GO Expression                                               { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    GoStmt - go Expression.\n", fileHeight); }
+	;    
+
+SelectStmt : 
+	SELECT '{' CommClauses '}'       				{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SelectStmt - select { CommClauses }.\n", fileHeight); }
+	;
+    
+CommClauses :
+	| CommClauses CommClause                			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommClauses - CommClauses CommClause.\n", fileHeight); }
+	;
+    
+CommClause :
+	CommCase ':' StatementList              			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommClause - CommCase : StatementList.\n", fileHeight); }
+	;
+    
+CommCase :
+	CASE SendStmt                           			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommCase - SendStmt.\n", fileHeight); }
+	| CASE RecvStmt                         			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommCase - RecvStmt.\n", fileHeight); }
+	| DEFAULT                               			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommCase - default.\n", fileHeight); }
+	;
+    
+RecvStmt :
+	RecvExpr                                                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    RecvStmt - RecvExpr.\n", fileHeight); }
+	| ExpressionList '=' RecvExpr                           	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    RecvStmt - ExpressionList = RecvExpr.\n", fileHeight); }
+	| IdentifierList ASSIGN RecvExpr                          	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    RecvStmt - IdentifierList := RecvExpr.\n", fileHeight); }
+	;
+    
+RecvExpr :
+	Expression                              			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    RecvExpr - Expression.\n", fileHeight); }
+	;
+    
+ReturnStmt :
+	RETURN                                                      { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ReturnStmt - return.\n", fileHeight); }
+	| RETURN ExpressionList                                     { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ReturnStmt - return ExpressionList.\n", fileHeight); }
+	;
+
+BreakStmt :
+	BREAK                                                       { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    BreadStmt - break.\n", fileHeight); }
+	| BREAK Label                                               { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    BreakStmt - break Label.\n", fileHeight); }    
+	;
+
+ContinueStmt :
+	CONTINUE                                                    { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ContinueStmt - continue.\n", fileHeight); }
+	| CONTINUE Label                                            { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ContinueStmt - continue Label.\n", fileHeight); }
+	;
+
+GotoStmt :
+	GOTO Label                                                  { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    GotoStmt - goto Label.\n", fileHeight); }
+	;
+
+FallthroughStmt :
+	FALLTHROUGH                                                 { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    FallthroughStmt - fallthrough.\n", fileHeight); }
+	;
+    
+DeferStmt :
+	DEFER Expression                                            { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    DeferStmt - defer Expression.\n", fileHeight); }
+	;
+
+SourceFile :
+	PackageClause ';' ImportDecls TopLevelDecls         { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SourceFile - PackageClause ImportDecls TopLevelDecls.\n", fileHeight); exit(0); }
+	;
+
+PackageClause : 
+	PACKAGE PackageName                             { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    PackageClause - package PackageName.\n", fileHeight); }
+	;
+    
+PackageName :
+	IDENTIFIER			            { if (priority <= IMPORTANT_OUTPUT) printf("[%d: %s] PackageName - identifier.\n", fileHeight, yylval.buffer); }
+	;
+	
+ImportDecls :
+	| ImportDecls ImportDecl ';'                        { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    ImportDecls - ImportDecls ImportDecl.\n", fileHeight); }
+	;
+    
+TopLevelDecls :
+	| TopLevelDecls TopLevelDecl ';'        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecls - TopLevelDecls TopLevelDecl.\n", fileHeight); }
+	;
+    
+ImportDecl :
+	IMPORT ImportSpec                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportDecl - import ImportSpec.\n", fileHeight); }
+	| IMPORT '(' ImportSpecs ')'                    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportDecl - import ( ImportSpec ).\n", fileHeight); }
+	;
+    
+ImportSpecs :
+	| ImportSpecs ImportSpec ';'                       { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportSpecs - ImportSpecsImportSpec.\n", fileHeight); }
+	;
+
+ImportSpec :
+	ImportPath                                      { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportSpec - ImportPath.\n", fileHeight); }
+	| '.' ImportPath                                { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportSpec - . ImportPath.\n", fileHeight); }
+	| PackageName ImportPath                        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportSpec - PackageName ImportPath.\n", fileHeight); }
+	;
+    
+ImportPath :
+	STRING                                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ImportPath - string.\n", fileHeight); }
 	;
 
 %%
@@ -817,7 +788,7 @@ int main() {
 	return 0;
 }
 int yyerror(const char* s) {
-	if (priority <= IMPORTANT_OUTPUT) printf("[]  Error: %s\n", s);
+	if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Error: %s\n", fileHeight, s);
 	return 1;
 }
 int yywrap() {
