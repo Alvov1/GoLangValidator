@@ -216,10 +216,13 @@ ChannelType :
 	;
     
 Block :
-	'{' StatementList '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Block - { StatementList }.\n", fileHeight); }
+	'{' '}'
+	| '{' Statement '}'				        { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Block - { StatementList }.\n", fileHeight); }
+	| '{' StatementList '}'
 	;
     
 StatementList :
+	Statement ';' Statement
 	| StatementList Statement ';'          			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    StatementList - StatementList Statement ;.\n", fileHeight); }
 	;
     
@@ -615,7 +618,9 @@ ExprCaseClauses :
 	;
     
 ExprCaseClause :
-	ExprSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprCaseClause - ExprSwitchCase : StatementList.\n", fileHeight); }
+	ExprSwitchCase ':'
+	| ExprSwitchCase ':' Statement
+	| ExprSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ExprCaseClause - ExprSwitchCase : StatementList.\n", fileHeight); }
 	;
 
 ExprSwitchCase :
@@ -638,7 +643,9 @@ TypeCaseClauses :
 	;
     
 TypeCaseClause :
-	TypeSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeCaseClause - TypeSwitchCase : StatementList.\n", fileHeight); }
+	TypeSwitchCase ':'
+	| TypeSwitchCase ':' Statement
+	| TypeSwitchCase ':' StatementList                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeCaseClause - TypeSwitchCase : StatementList.\n", fileHeight); }
 	;
    
 TypeSwitchCase :
@@ -689,7 +696,9 @@ CommClauses :
 	;
     
 CommClause :
-	CommCase ':' StatementList              			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommClause - CommCase : StatementList.\n", fileHeight); }
+	CommCase ':' 
+	| CommCase ':' Statement
+	| CommCase ':' StatementList              			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    CommClause - CommCase : StatementList.\n", fileHeight); }
 	;
     
 CommCase :
