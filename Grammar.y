@@ -43,7 +43,7 @@
 
 Type :
     	TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeOperandName.\n", fileHeight); }
-	| TypeOperandName TypeArgs        	        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - Typename TypeArgs.\n", fileHeight); }
+//	| TypeOperandName TypeArgs        	        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - Typename TypeArgs.\n", fileHeight); }
 	| TypeLit			                	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - TypeLit.\n", fileHeight); }
 //	| '(' Type ')'			            		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Type - ( Type ).\n", fileHeight); }
 	;
@@ -346,12 +346,6 @@ Operand :
 	
 PrimaryExpr :
 	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
-//	Literal
-//	| TypeOperandName
-//	| LiteralType
-//	| PrimaryExpr LiteralValue	
-//	| '(' Expression ')'
-
 	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
 	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
 	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
@@ -383,7 +377,7 @@ LiteralType :
 	| '[' MULTIDOT ']' ElementType				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - [ ...      ] ElementType.\n", fileHeight); }
 	| SliceType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - SliceType.\n", fileHeight); }
 	| MapType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - MapType.\n", fileHeight); }
-//	| TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName.\n", fileHeight); }
 //	| TypeOperandName TypeArgs     				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName TypeArgs.\n", fileHeight); }
 	;
 	
