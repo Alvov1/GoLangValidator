@@ -108,7 +108,8 @@ FieldDecl :
 IdentifierListOrNothing :
 								{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    IdentifierListOrNothing - nothing.\n", fileHeight); }
 	| IdentifierList					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    IdentifierListOrNothing - IdentifierList.\n", fileHeight); }
-	; 	
+	;
+	
 Tag : 
 	STRING					            	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Tag - string.\n", fileHeight); }
 	;
@@ -338,10 +339,25 @@ Receiver :
     
 Operand :
 	Literal						        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - Literal.\n", fileHeight); }
-//	| TypeOperandName                       		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName.\n", fileHeight); }
+	| TypeOperandName                       		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName.\n", fileHeight); }
 //	| TypeOperandName TypeArgs		        	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - TypeOperandName TypeArgs.\n", fileHeight); } 
 	| '(' Expression ')'					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Operand - ( Expression ).\n", fileHeight); }
 	;
+	
+PrimaryExpr :
+	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
+//	Literal
+//	| TypeOperandName
+//	| LiteralType
+//	| PrimaryExpr LiteralValue	
+//	| '(' Expression ')'
+
+	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
+	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
+	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
+	| PrimaryExpr TypeAssertion				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr TypeAssertion.\n", fileHeight); }
+	| PrimaryExpr Arguments					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Arguments.\n", fileHeight); }
+	;	
 	
 Literal :
 	BasicLit				            	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Literal - BasicLit.\n", fileHeight); } 
@@ -393,26 +409,13 @@ Key :
  	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - LiteralValue.\n", fileHeight); }
  	;
 
-Element : 
+Element :
 	Expression					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Element - Expression.\n", fileHeight); }
 	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Element - LiteralValue.\n", fileHeight); }
 	;	
 			
 FunctionLit :
 	FUNC Signature FunctionBody         			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    FunctionLit - func Signature FucntionBody.\n", fileHeight); }
-	;
-    
-PrimaryExpr :
-	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
-//	| Conversion						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Conversion.\n", fileHeight); }
-//	| Type '.' Type
-//	| Type
-	| TypeOperandName
-	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
-	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
-	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
-	| PrimaryExpr TypeAssertion				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr TypeAssertion.\n", fileHeight); }
-	| PrimaryExpr Arguments					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Arguments.\n", fileHeight); }
 	;
 	
 Selector :
@@ -507,11 +510,6 @@ unary_op :
 	| '&'							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - &.\n", fileHeight); }
 	| ARROW_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - <-.\n", fileHeight); }
 	;
-
-//Conversion :
-//	Type '(' Expression ')'                                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression ).\n", fileHeight); }
-//	| Type '(' Expression ',' ')'                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression , ).\n", fileHeight); }
-//	;
     
 Statement :
 	Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - Declaration\n", fileHeight); }
@@ -729,7 +727,10 @@ DeferStmt :
 	;
 
 SourceFile :
-	PackageClause ';' ImportDecls TopLevelDecls         { if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SourceFile - PackageClause ImportDecls TopLevelDecls.\n", fileHeight); exit(0); }
+	PackageClause ';' ImportDecls TopLevelDecls         
+	{ 
+		if (priority <= IMPORTANT_OUTPUT) printf("[%d]    SourceFile - PackageClause ImportDecls TopLevelDecls.\n", fileHeight); 
+		if (priority <= IMPORTANT_OUTPUT) printf(" ---------- Completed !!! ---------- \n" ); exit(0); }
 	;
 
 PackageClause : 
