@@ -18,10 +18,13 @@
 \"[^"]*\"                       { fprintf(lexOutput, "\"string\""); /*printf("#### string.\n"); */ writeName(); return check(STRING); }
 \'[^']*\'                       { fprintf(lexOutput, "'rune'"); /*printf("#### string.\n"); */ writeName(); return check(RUNE); }
 `[^`]*`                         { fprintf(lexOutput, "`rune`"); /*printf("#### string.\n"); */ writeName(); return check(RUNE); }
-[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)[i]                              { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(IMAGINARY); }
-0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))[i]   { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IMAGINARY); }
-[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
-0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
+
+([0-9]+)?[\.]([0-9]+)?([eE][+-]?[0-9]+)?  { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
+
+[0-9]+([eE][+-]?[0-9]+)?        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
+0x[0-9a-fA-F]+                  { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
+0o[0-7]+                        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
+0b[0-1]+                        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
 
 "package"                       { fprintf(lexOutput, "package"); /* printf("#### package.\n");*/         return check(PACKAGE); }
 "interface"                     { fprintf(lexOutput, "interface"); /* printf("#### interface.\n");*/       return check(INTERFACE); }
