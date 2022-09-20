@@ -16,6 +16,12 @@
 [/][*]                                  { printf("Unterminated comment"); exit(0); }
 
 \"[^"]*\"                       { fprintf(lexOutput, "\"string\""); /*printf("#### string.\n"); */ writeName(); return check(STRING); }
+\'[^']*\'                       { fprintf(lexOutput, "'rune'"); /*printf("#### string.\n"); */ writeName(); return check(RUNE); }
+`[^`]*`                         { fprintf(lexOutput, "`rune`"); /*printf("#### string.\n"); */ writeName(); return check(RUNE); }
+[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)[i]                              { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(IMAGINARY); }
+0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))[i]   { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IMAGINARY); }
+[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
+0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
 
 "package"                       { fprintf(lexOutput, "package"); /* printf("#### package.\n");*/         return check(PACKAGE); }
 "interface"                     { fprintf(lexOutput, "interface"); /* printf("#### interface.\n");*/       return check(INTERFACE); }
@@ -108,8 +114,6 @@
 "++"                            { fprintf(lexOutput, "++"); /*printf("#### ++.\n"); */ writeName(); return check(INCREMENT); }
 "--"                            { fprintf(lexOutput, "--"); /*printf("#### --.\n"); */ writeName(); return check(DECREMENT); }
 
-[0-9]*([0-9]\.?|\.[0-9])[0-9]*([Ee][-+]?[0-9]+)                                 { fprintf(lexOutput, "%s", yytext); /*printf("#### float.\n"); */ writeName(); return check(FLOAT); }
-0*([12]?[0-9]{1,4}|3(2(7(6[0-7]|[0-5][0-9])|[0-6][0-9]{2})|[0-1][0-9]{3}))      { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(INTEGER); }
 [a-zA-Z_][a-zA-Z0-9_]*        { fprintf(lexOutput, "%s", yytext); /*printf("#### int.\n"); */ writeName(); return check(IDENTIFIER); }
 
 "["                             { fprintf(lexOutput, "["); /*printf("Founded %c.\n", *yytext);*/ return check('['); }
