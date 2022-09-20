@@ -147,8 +147,13 @@ ParameterList :
 	;
 	
 ParameterDecl :	
-	IdentifierListOrNothing Type				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierListOrNothing Type.\n", fileHeight); }
-	| IdentifierListOrNothing MULTIDOT Type			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierListOrNothing ... Type.\n", fileHeight); }
+	IdentifierListOrNothing TypeOrNothing				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierListOrNothing Type.\n", fileHeight); }
+	| IdentifierListOrNothing MULTIDOT TypeOrNothing			{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ParameterDecl - IdentifierListOrNothing ... Type.\n", fileHeight); }
+	;
+	
+TypeOrNothing :
+								{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeOrNothing - nothing.\n", fileHeight); }
+	| Type							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    TypeOrNothing - Type.\n", fileHeight); }
 	;
 		
 InterfaceType :
@@ -197,7 +202,8 @@ ChannelType :
 	;
 	
 ArrowLeftNothing :
-	| ARROW_LEFT
+								{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ArrowLeftNothing - nothing.\n", fileHeight); }
+	| ARROW_LEFT						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ArrowLeftNothing - <-.\n", fileHeight); }
 	;
     
 Block :
@@ -307,6 +313,7 @@ VarSpec :
     
 ShortVarDecl :
 	IdentifierList ASSIGN ExpressionList                          { if (priority < IMPORTANT_OUTPUT) printf("[%d]    ShortVarDecl - IdentifierList := ExpressionList.\n", fileHeight); }
+	| ExpressionList ASSIGN ExpressionList				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    ShortVarDecl - ExpressionList := ExpressionList.\n", fileHeight); }
 	;
     
 FunctionDecl :
@@ -360,7 +367,7 @@ LiteralType :
 	| '[' MULTIDOT ']' ElementType				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - [ ...      ] ElementType.\n", fileHeight); }
 	| SliceType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - SliceType.\n", fileHeight); }
 	| MapType					        { if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - MapType.\n", fileHeight); }
-	| TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName.\n", fileHeight); }
+//	| TypeOperandName                          		{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName.\n", fileHeight); }
 //	| TypeOperandName TypeArgs     				{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    LiteralType - TypeOperandName TypeArgs.\n", fileHeight); }
 	;
 	
@@ -381,8 +388,8 @@ KeyedElement :
 	;
  	
 Key :
-	IDENTIFIER
- 	| Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - Expression.\n", fileHeight); } 
+//	IDENTIFIER
+ 	Expression					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - Expression.\n", fileHeight); } 
  	| LiteralValue					    	{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    Key - LiteralValue.\n", fileHeight); }
  	;
 
@@ -398,7 +405,9 @@ FunctionLit :
 PrimaryExpr :
 	Operand							{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Operand.\n", fileHeight); }
 //	| Conversion						{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - Conversion.\n", fileHeight); }
-//	| Type '.' IDENTIFIER
+//	| Type '.' Type
+//	| Type
+	| TypeOperandName
 	| PrimaryExpr Selector					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Selector.\n", fileHeight); }
 	| PrimaryExpr Index					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Index.\n", fileHeight); }
 	| PrimaryExpr Slice					{ if (priority < IMPORTANT_OUTPUT) printf("[%d]    PrimaryExpr - PrimaryExpr Slice.\n", fileHeight); }
@@ -499,10 +508,10 @@ unary_op :
 	| ARROW_LEFT							    { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Unary_operator - <-.\n", fileHeight); }
 	;
 
-Conversion :
-	Type '(' Expression ')'                                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression ).\n", fileHeight); }
-	| Type '(' Expression ',' ')'                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression , ).\n", fileHeight); }
-	;
+//Conversion :
+//	Type '(' Expression ')'                                     { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression ).\n", fileHeight); }
+//	| Type '(' Expression ',' ')'                               { if (priority < IMPORTANT_OUTPUT) printf("[%d]    Conversion - Type ( Expression , ).\n", fileHeight); }
+//	;
     
 Statement :
 	Declaration                         			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    Statement - Declaration\n", fileHeight); }
@@ -656,6 +665,7 @@ RangeClause :
 	RANGE Expression                                            { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - range Expression.\n", fileHeight); }
 	| ExpressionList '=' RANGE Expression                       { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - ExpressionList = range Expression.\n", fileHeight); }
 	| IdentifierList ASSIGN RANGE Expression                      { if (priority < IMPORTANT_OUTPUT) printf("[%d]    RangeClause - IdentifierList := range Expression.\n", fileHeight); }
+	| ExpressionList ASSIGN RANGE Expression
 	;
     
 GoStmt :
@@ -737,7 +747,8 @@ ImportDecls :
     
 TopLevelDecls :
 								{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecls - nothing.\n", fileHeight); }
-	| TopLevelDecls TopLevelDecl ';'        			{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecls - TopLevelDecls TopLevelDecl.\n", fileHeight); }
+	| TopLevelDecls TopLevelDecl ';'        		{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecls - TopLevelDecls TopLevelDecl ;.\n", fileHeight); }
+	| TopLevelDecls TopLevelDecl				{ if (priority <= IMPORTANT_OUTPUT) printf("[%d]    TopLevelDecls - TopLevelDecls TopLevelDecl.\n", fileHeight); }
 	;
     
 ImportDecl :
